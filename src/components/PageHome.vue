@@ -1,6 +1,6 @@
 <template>
 
-    <div v-for="thread in threads" :key="thread.id" class="col-large push-top">
+    <div class="col-large push-top">
       <h1>{{thread.title}}</h1>
 
       <div class="post-list">
@@ -31,7 +31,9 @@
           </div>
 
         </div>
+
        </div>
+
     </div>
 </template>
 
@@ -58,7 +60,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 
 .post-list {
   margin-top: 20px;
