@@ -4,12 +4,19 @@ import ThreadShow from '@/pages/ThreadShow'
 import NotFound from '@/pages/NotFound'
 import sourceData from '@/data.json'
 import Forum from '@/pages/Forum'
+import CategoryShow from '@/pages/CategoryShow'
 
 const routes = [
   {
     path: '/',
     name: 'Home',
     component: Home
+  },
+  {
+    path: '/category/:id',
+    name: 'Category',
+    component: CategoryShow,
+    props: true
   },
   {
     path: '/forum/:id',

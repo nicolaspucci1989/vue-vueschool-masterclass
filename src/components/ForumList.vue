@@ -3,7 +3,7 @@
     <div class="forum-list">
 
       <h2 class="list-title">
-        <a href="#">Forums</a>
+        <a href="#">{{name}}</a>
       </h2>
 
       <div class="forum-listing" v-for="forum in forums" :key="forum.id">
@@ -36,6 +36,10 @@ export default {
     forums: {
       required: true,
       type: Array
+    },
+    name: {
+      required: true,
+      type: String
     }
   },
   methods: {
