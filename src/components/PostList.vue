@@ -4,7 +4,7 @@
     <div v-for="post in posts" :key="post.id" class="post">
 
       <div class="user-info">
-        <a href="#" class="user-name">{{userById(post.userId).name}}</a>
+        <a href="#" class="user-name">{{ userById(post.userId).name }}</a>
 
         <a href="#">
           <img class="avatar-large" :src="userById(post.userId).avatar" alt="">
@@ -17,13 +17,13 @@
       <div class="post-content">
         <div>
           <p>
-            {{post.text}}
+            {{ post.text }}
           </p>
         </div>
       </div>
 
-      <div class="post-date text-faded">
-        {{post.publishedAt}}
+      <div class="post-date text-faded" :title="humanFriendlyDate(post.publishedAt)">
+        {{ diffForHumans(post.publishedAt) }}
       </div>
 
     </div>
@@ -33,7 +33,12 @@
 
 <script>
 import sourceData from '@/data.json'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import localizedFormat from 'dayjs/plugin/localizedFormat'
 
+dayjs.extend(relativeTime)
+dayjs.extend(localizedFormat)
 export default {
   name: 'PostList',
   props: {
@@ -53,6 +58,12 @@ export default {
     },
     userById (userId) {
       return this.users.find(p => p.id === userId)
+    },
+    diffForHumans (timestamp) {
+      return dayjs.unix(timestamp).fromNow()
+    },
+    humanFriendlyDate (timestamp) {
+      return dayjs.unix(timestamp).format('llll')
     }
   }
 }
