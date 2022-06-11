@@ -22,16 +22,12 @@ export default {
   },
   methods: {
     save () {
-      const postId = 'gggg' + Math.random()
       const post = {
-        id: postId,
-        text: this.newPostText,
+        text: this.text,
         publishedAt: Math.floor(Date.now() / 1000),
         userId: '38St7Q8Zi2N1SPa5ahzssq9kbyp1'
       }
       this.$emit('save', { post })
-      // this.posts.push(post)
-      // this.thread.posts.push(postId)
 
       this.newPostText = ''
     }
