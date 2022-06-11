@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from '@/pages/Home'
 import ThreadShow from '@/pages/ThreadShow'
 import NotFound from '@/pages/NotFound'
-import sourceData from '@/data.json'
+import store from '@/store'
 import Forum from '@/pages/Forum'
 import CategoryShow from '@/pages/CategoryShow'
 
@@ -30,7 +30,7 @@ const routes = [
     component: ThreadShow,
     props: true,
     beforeEnter (to, from, next) {
-      const threadExists = sourceData.threads.find(thread => thread.id === to.params.id)
+      const threadExists = store.state.threads.find(thread => thread.id === to.params.id)
       if (threadExists) {
         next()
       } else {
