@@ -3,7 +3,8 @@
     <div class="forum-list">
 
       <h2 class="list-title">
-        <a href="#">{{name}}</a>
+        <router-link v-if="categoryId" :to="{name: 'Category', params: {id: categoryId}}">{{ title }}</router-link>
+        <span v-else>{{ title }}</span>
       </h2>
 
       <div class="forum-listing" v-for="forum in forums" :key="forum.id">
@@ -11,14 +12,15 @@
           <router-link
             class="text-xlarge"
             :to="{name: 'Forum', params: {id: forum.id}}"
-          >{{forum.name}}</router-link>
-          <p>{{forum.description}}</p>
+          >{{ forum.name }}
+          </router-link>
+          <p>{{ forum.description }}</p>
         </div>
 
         <div class="threads-count">
           <p><span class="count">
-          {{forum.threads?.length}}</span>
-            {{forumThreadsWord(forum)}}</p>
+          {{ forum.threads?.length }}</span>
+            {{ forumThreadsWord(forum) }}</p>
         </div>
 
         <div class="last-thread">
@@ -37,8 +39,13 @@ export default {
       required: true,
       type: Array
     },
-    name: {
+    title: {
       required: true,
+      type: String,
+      default: 'Forum'
+    },
+    categoryId: {
+      required: false,
       type: String
     }
   },

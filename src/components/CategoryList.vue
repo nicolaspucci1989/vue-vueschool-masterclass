@@ -1,24 +1,24 @@
 <template>
-  <h1>{{category.name}}</h1>
-  <forum-list :title="category.name" :forums="getForumsFromCategory(category)"/>
+  <forum-list
+    v-for="category in categories"
+    :key="category.id"
+    :forums="getForumsFromCategory(category)"
+    :title="category.name"
+    :categoryId="category.id"
+  />
 </template>
 
 <script>
-import sourceData from '@/data.json'
 import ForumList from '@/components/ForumList'
+import sourceData from '@/data.json'
 
 export default {
-  name: 'CategoryShow',
+  categoryName: 'CategoryList',
   components: { ForumList },
   props: {
-    id: {
+    categories: {
       required: true,
-      type: String
-    }
-  },
-  computed: {
-    category () {
-      return sourceData.categories.find(category => category.id === this.id)
+      type: Array
     }
   },
   methods: {
