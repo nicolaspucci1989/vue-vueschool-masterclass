@@ -1,28 +1,20 @@
 <template>
   <h1>Welcome to the forum</h1>
-  <ThreadList
-    :threads="threads"
+  <forum-list
+    :forums="forums"
   />
 </template>
 
 <script>
 import sourceData from '@/data.json'
-import ThreadList from '@/components/ThreadList'
+import ForumList from '@/components/ForumList'
 
 export default {
   name: 'PageHome',
-  components: { ThreadList },
+  components: { ForumList },
   data () {
     return {
-      threads: sourceData.threads
-    }
-  },
-  methods: {
-    postById (postId) {
-      return this.posts.find(p => p.id === postId)
-    },
-    userById (userId) {
-      return this.users.find(p => p.id === userId)
+      forums: sourceData.forums
     }
   }
 }
