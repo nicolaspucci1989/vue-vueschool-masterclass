@@ -42,7 +42,7 @@
         <input autocomplete="off" v-model="activeUser.location" class="form-input" id="user_location"></div>
 
       <div class="btn-group space-between">
-        <button class="btn-ghost">Cancel</button>
+        <button class="btn-ghost" @click="cancel">Cancel</button>
         <button type="submit" class="btn-blue">Save</button>
       </div>
     </form>
@@ -67,6 +67,10 @@ export default {
     save () {
       console.log('save')
       this.$store.dispatch('updateUser', { ...this.activeUser })
+      this.$router.push({ name: 'Profile' })
+    },
+    cancel () {
+      this.$router.push({ name: 'Profile' })
     }
   }
 }

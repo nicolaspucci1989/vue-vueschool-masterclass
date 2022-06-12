@@ -3,15 +3,10 @@
     <div class="flex-grid">
       <div class="col-3 push-top">
 
-        <user-profile-card :user="user"/>
-        <user-profile-card-editor :user="user"/>
+        <user-profile-card v-if="!edit" :user="user"/>
+        <user-profile-card-editor v-else :user="user"/>
 
         <p class="text-xsmall text-faded text-center">Member since june 2003, last visited 4 hours ago</p>
-
-        <div class="text-center">
-          <hr>
-          <a href="#" class="btn-green btn-small">Edit Profile</a>
-        </div>
 
       </div>
 
@@ -41,6 +36,12 @@ import UserProfileCardEditor from '@/components/UserProfileCardEditor'
 export default {
   name: 'ProfileShow',
   components: { UserProfileCardEditor, UserProfileCard, PostList },
+  props: {
+    edit: {
+      type: Boolean,
+      default: false
+    }
+  },
   computed: {
     ...mapGetters({ user: 'authUser' })
   }
