@@ -1,40 +1,25 @@
 <template>
   <div class="col-full push-top">
 
-    <h1>Create new thread in <i>{{forum.name}}</i></h1>
+    <h1>Create new thread in <i>{{ forum.name }}</i></h1>
 
-    <form @submit.prevent="save">
-      <div class="form-group">
-        <label for="thread_title">Title:</label>
-        <input v-model="title" type="text" id="thread_title" class="form-input" name="title">
-      </div>
-
-      <div class="form-group">
-        <label for="thread_content">Content:</label>
-        <textarea v-model="text" id="thread_content" class="form-input" name="content" rows="8" cols="140"></textarea>
-      </div>
-
-      <div class="btn-group">
-        <button class="btn btn-ghost" @click="cancel">Cancel</button>
-        <button class="btn btn-blue" type="submit" name="Publish">Publish </button>
-      </div>
-    </form>
+    <thread-editor
+      @save="save"
+      @cancel="cancel"
+    />
   </div>
 </template>
 
 <script>
+import ThreadEditor from '@/components/ThreadEditor'
+
 export default {
   name: 'ThreadCreate',
+  components: { ThreadEditor },
   props: {
     forumId: {
       type: String,
       required: true
-    }
-  },
-  data () {
-    return {
-      title: '',
-      text: ''
     }
   },
   computed: {
@@ -43,8 +28,12 @@ export default {
     }
   },
   methods: {
-    async save () {
-      const thread = await this.$store.dispatch('createThread', { forumId: this.forum.id, title: this.title, text: this.text })
+    async save ({ title, text }) {
+      const thread = await this.$store.dispatch('createThread', {
+        forumId: this.forum.id,
+        title: title,
+        text: text
+      })
       await this.$router.push({ name: 'ThreadShow', params: { id: thread.id } })
     },
     cancel () {
