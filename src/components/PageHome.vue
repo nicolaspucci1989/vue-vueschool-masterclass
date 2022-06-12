@@ -36,15 +36,14 @@
 </template>
 
 <script>
-import sourceData from '@/data.json'
 
 export default {
   name: 'PageHome',
   data () {
     return {
-      threads: sourceData.threads,
-      posts: sourceData.posts,
-      users: sourceData.users
+      threads: this.$store.state.threads,
+      posts: this.$store.state.posts,
+      users: this.$store.state.users
     }
   },
   methods: {

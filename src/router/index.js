@@ -2,15 +2,28 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from '@/pages/Home'
 import ThreadShow from '@/pages/ThreadShow'
 import NotFound from '@/pages/NotFound'
-import sourceData from '@/data.json'
+import store from '@/store'
 import Forum from '@/pages/Forum'
 import CategoryShow from '@/pages/CategoryShow'
+import ProfileShow from '@/pages/ProfileShow'
 
 const routes = [
   {
     path: '/',
     name: 'Home',
     component: Home
+  },
+  {
+    path: '/me',
+    name: 'Profile',
+    component: ProfileShow,
+    meta: { toTop: true, smoothScroll: true }
+  },
+  {
+    path: '/me/edit',
+    name: 'ProfileEdit',
+    component: ProfileShow,
+    props: { edit: true }
   },
   {
     path: '/category/:id',
@@ -30,7 +43,7 @@ const routes = [
     component: ThreadShow,
     props: true,
     beforeEnter (to, from, next) {
-      const threadExists = sourceData.threads.find(thread => thread.id === to.params.id)
+      const threadExists = store.state.threads.find(thread => thread.id === to.params.id)
       if (threadExists) {
         next()
       } else {
@@ -50,9 +63,14 @@ const routes = [
   }
 ]
 
-const router = createRouter({
+export default createRouter({
   history: createWebHistory(),
-  routes
-})
+  routes,
+  scrollBehavior (to) {
+    const scroll = {}
+    if (to.meta.toTop) scroll.top = 0
+    if (to.meta.smoothScroll) scroll.behavior = 'smooth'
+    return scroll
+  }
 
-export default router
+})
