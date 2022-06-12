@@ -1,6 +1,11 @@
 <template>
   <div class="col-large push-top">
-    <h1>{{ thread.title }}</h1>
+    <h1>
+      {{ thread.title }}
+      <router-link :to="{name: 'ThreadEdit', id: this.id}">
+        <button class="btn-green">Edit Thread</button>
+      </router-link>
+    </h1>
     <post-list :posts="threadPosts"/>
     <post-editor @save="addPost"/>
   </div>
