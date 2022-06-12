@@ -5,12 +5,18 @@ import NotFound from '@/pages/NotFound'
 import store from '@/store'
 import Forum from '@/pages/Forum'
 import CategoryShow from '@/pages/CategoryShow'
+import ProfileShow from '@/pages/ProfileShow'
 
 const routes = [
   {
     path: '/',
     name: 'Home',
     component: Home
+  },
+  {
+    path: '/me',
+    name: 'Profile',
+    component: ProfileShow
   },
   {
     path: '/category/:id',
