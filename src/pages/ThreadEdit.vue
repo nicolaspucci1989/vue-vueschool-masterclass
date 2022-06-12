@@ -1,5 +1,5 @@
 <template>
-  <div className="col-full push-top">
+  <div class="col-full push-top">
 
     <h1>Editing <i>{{ thread.title }}</i></h1>
 
