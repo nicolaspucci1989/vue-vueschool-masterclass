@@ -45,8 +45,8 @@ export default createStore({
       const thread = { forumId, title, publishedAt, userId, id }
       commit('setThread', { thread })
       commit('appendThreadToUser', { userId, threadId: id })
-      commit('appendThreadToForum', { userId, threadId: id })
-      dispatch('createPost', { thread, threadId: id })
+      commit('appendThreadToForum', { forumId, threadId: id })
+      dispatch('createPost', { thread, threadId: id, text })
     }
   },
   mutations: {

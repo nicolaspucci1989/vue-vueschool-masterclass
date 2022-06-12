@@ -26,8 +26,8 @@
 export default {
   name: 'ThreadCreate',
   props: {
-    forum: {
-      type: Object,
+    forumId: {
+      type: String,
       required: true
     }
   },
@@ -35,6 +35,11 @@ export default {
     return {
       title: '',
       text: ''
+    }
+  },
+  computed: {
+    forum () {
+      return this.$store.state.forums.find(forum => forum.id === this.forumId)
     }
   },
   methods: {

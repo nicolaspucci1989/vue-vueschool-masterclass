@@ -27,7 +27,7 @@ export default {
       }
       this.$emit('save', { post })
 
-      this.newPostText = ''
+      this.text = ''
     }
   }
 }
