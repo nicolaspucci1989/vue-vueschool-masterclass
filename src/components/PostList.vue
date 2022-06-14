@@ -10,7 +10,8 @@
           <img class="avatar-large" :src="userById(post.userId).avatar" alt="">
         </a>
 
-        <p class="desktop-only text-small">107 posts</p>
+        <p class="desktop-only text-small">{{userById(post.userId).postsCount}} posts</p>
+        <p class="desktop-only text-small">{{userById(post.userId).threadsCount}} threads</p>
 
       </div>
 
@@ -33,8 +34,6 @@
 
 <script>
 
-import { findById } from '@/helpers'
-
 export default {
   name: 'PostList',
   props: {
@@ -49,11 +48,8 @@ export default {
     }
   },
   methods: {
-    postById (postId) {
-      return findById(this.posts, postId)
-    },
     userById (userId) {
-      return findById(this.users, userId)
+      return this.$store.getters.user(userId)
     }
   }
 }

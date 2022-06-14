@@ -8,22 +8,27 @@ export default createStore({
     authId: 'L664y3qZSubDbT1R6npC0EEybJ73'
   },
   getters: {
-    authUser: state => {
-      const user = findById(state.users, state.authId)
-      if (!user) return null
-      return {
-        ...user,
-        get posts () {
-          return state.posts.filter(post => post.userId === user.id)
-        },
-        get postsCount () {
-          return this.posts.length
-        },
-        get threads () {
-          return state.threads.filter(thread => thread.userId === user.id)
-        },
-        get threadsCount () {
-          return this.threads.length
+    authUser: (state, getters) => {
+      return getters.user(state.authId)
+    },
+    user: state => {
+      return (id) => {
+        const user = findById(state.users, id)
+        if (!user) return null
+        return {
+          ...user,
+          get posts () {
+            return state.posts.filter(post => post.userId === user.id)
+          },
+          get postsCount () {
+            return this.posts.length
+          },
+          get threads () {
+            return state.threads.filter(thread => thread.userId === user.id)
+          },
+          get threadsCount () {
+            return this.threads.length
+          }
         }
       }
     },
@@ -39,7 +44,7 @@ export default createStore({
             return thread.posts.length - 1
           },
           get contributorsCount () {
-            return thread.contributors.length
+            return thread.contributors?.length ? thread.contributors.length : 0
           }
         }
       }
