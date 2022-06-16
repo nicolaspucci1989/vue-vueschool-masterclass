@@ -7,7 +7,7 @@
       </router-link>
     </h1>
     <p>
-      By <a href="#" class="link-unstyled">{{thread.author.name}}</a>, <AppDate :timestamp="thread.publishedAt"/>.
+      By <a href="#" class="link-unstyled">{{thread.author?.name}}</a>, <AppDate :timestamp="thread.publishedAt"/>.
       <span style="float:right; margin-top: 2px;" class="hide-mobile text-faded text-small">
         {{thread.repliesCount}} replies by {{thread.contributorsCount}} contributors</span>
     </p>
@@ -21,6 +21,8 @@
 import PostList from '@/components/PostList'
 import PostEditor from '@/components/PostEditor'
 import AppDate from '@/components/AppDate'
+import { doc, onSnapshot } from 'firebase/firestore'
+import { db } from '@/firebase'
 
 export default {
   name: 'ThreadShow',
@@ -30,6 +32,65 @@ export default {
       type: String,
       required: true
     }
+  },
+  created () {
+    // fetch the thread
+    onSnapshot(
+      doc(db, 'threads', this.id),
+      {
+        next: (snap) => {
+          const thread = { ...snap.data(), id: snap.id }
+          this.$store.commit('setThread', { thread })
+
+          // fetch the user
+          onSnapshot(
+            doc(db, 'users', thread.userId),
+            {
+              next: (snap) => {
+                const user = { ...snap.data(), id: snap.id }
+                this.$store.commit('setUser', { user })
+              },
+              error: (error) => {
+                console.log('error ', error)
+              }
+            }
+          )
+
+          thread.posts.forEach(postId => {
+            // fetch the posts
+            onSnapshot(
+              doc(db, 'posts', postId),
+              {
+                next: (snap) => {
+                  const post = { ...snap.data(), id: snap.id }
+                  this.$store.commit('setPost', { post })
+
+                  // fetch the user for each post
+                  onSnapshot(
+                    doc(db, 'users', post.userId),
+                    {
+                      next: (snap) => {
+                        const user = { ...snap.data(), id: snap.id }
+                        this.$store.commit('setUser', { user })
+                      },
+                      error: (error) => {
+                        console.log('error ', error)
+                      }
+                    }
+                  )
+                },
+                error: (error) => {
+                  console.log('error ', error)
+                }
+              }
+            )
+          })
+        },
+        error: (error) => {
+          console.log('error ', error)
+        }
+      }
+    )
   },
   computed: {
     threads () {
