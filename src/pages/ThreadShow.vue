@@ -2,17 +2,18 @@
   <div class="col-large push-top">
     <h1>
       {{ thread.title }}
-      <router-link :to="{name: 'ThreadEdit', id: this.id}">
+      <router-link :to="{ name: 'ThreadEdit', id: this.id }">
         <button class="btn-green">Edit Thread</button>
       </router-link>
     </h1>
     <p>
-      By <a href="#" class="link-unstyled">{{thread.author?.name}}</a>, <AppDate :timestamp="thread.publishedAt"/>.
+      By <a href="#" class="link-unstyled">{{ thread.author?.name }}</a>,
+      <AppDate :timestamp="thread.publishedAt" />.
       <span style="float:right; margin-top: 2px;" class="hide-mobile text-faded text-small">
-        {{thread.repliesCount}} replies by {{thread.contributorsCount}} contributors</span>
+        {{ thread.repliesCount }} replies by {{ thread.contributorsCount }} contributors</span>
     </p>
-    <post-list :posts="threadPosts"/>
-    <post-editor @save="addPost"/>
+    <post-list :posts="threadPosts" />
+    <post-editor @save="addPost" />
   </div>
 </template>
 
@@ -21,8 +22,6 @@
 import PostList from '@/components/PostList'
 import PostEditor from '@/components/PostEditor'
 import AppDate from '@/components/AppDate'
-import { doc, onSnapshot } from 'firebase/firestore'
-import { db } from '@/firebase'
 
 export default {
   name: 'ThreadShow',
@@ -33,64 +32,17 @@ export default {
       required: true
     }
   },
-  created () {
-    // fetch the thread
-    onSnapshot(
-      doc(db, 'threads', this.id),
-      {
-        next: (snap) => {
-          const thread = { ...snap.data(), id: snap.id }
-          this.$store.commit('setThread', { thread })
+  async created () {
+    const thread = await this.$store.dispatch('fetchThread', { id: this.id })
 
-          // fetch the user
-          onSnapshot(
-            doc(db, 'users', thread.userId),
-            {
-              next: (snap) => {
-                const user = { ...snap.data(), id: snap.id }
-                this.$store.commit('setUser', { user })
-              },
-              error: (error) => {
-                console.log('error ', error)
-              }
-            }
-          )
+    // fetch the user
+    this.$store.dispatch('fetchUser', { id: thread.userId })
 
-          thread.posts.forEach(postId => {
-            // fetch the posts
-            onSnapshot(
-              doc(db, 'posts', postId),
-              {
-                next: (snap) => {
-                  const post = { ...snap.data(), id: snap.id }
-                  this.$store.commit('setPost', { post })
-
-                  // fetch the user for each post
-                  onSnapshot(
-                    doc(db, 'users', post.userId),
-                    {
-                      next: (snap) => {
-                        const user = { ...snap.data(), id: snap.id }
-                        this.$store.commit('setUser', { user })
-                      },
-                      error: (error) => {
-                        console.log('error ', error)
-                      }
-                    }
-                  )
-                },
-                error: (error) => {
-                  console.log('error ', error)
-                }
-              }
-            )
-          })
-        },
-        error: (error) => {
-          console.log('error ', error)
-        }
-      }
-    )
+    thread.posts.forEach(async (postId) => {
+      // fetch the posts
+      const post = await this.$store.dispatch('fetchPost', { id: postId })
+      this.$store.dispatch('fetchUser', { id: post.userId })
+    })
   },
   computed: {
     threads () {
@@ -119,7 +71,6 @@ export default {
 </script>
 
 <style>
-
 .post-list {
   margin-top: 20px;
 }
@@ -151,7 +102,7 @@ export default {
   margin-right: 5px;
 }
 
-.post .user-info > * {
+.post .user-info>* {
   margin-bottom: 10px;
 }
 
@@ -177,7 +128,7 @@ export default {
     order: 2;
   }
 
-  .post .user-info > * {
+  .post .user-info>* {
     margin-right: 5px;
     margin-bottom: 0;
   }
@@ -219,7 +170,9 @@ export default {
   word-break: break-word;
 }
 
-.post-content h1, .post-content h2, .post-content h3 {
+.post-content h1,
+.post-content h2,
+.post-content h3 {
   margin-bottom: 0;
 }
 
@@ -386,5 +339,4 @@ export default {
 .post-listing-editor {
   flex: 1 1 83%;
 }
-
 </style>

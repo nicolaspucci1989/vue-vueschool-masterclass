@@ -1,5 +1,7 @@
 import { createStore } from 'vuex'
 import { findById, upsert } from '@/helpers'
+import { doc, onSnapshot } from '@firebase/firestore'
+import { db } from '@/firebase'
 
 export default createStore({
   state: {
@@ -84,8 +86,64 @@ export default createStore({
       commit('setThread', { thread: newThread })
       commit('setPost', { post: newPost })
       return newThread
+    },
+    fetchThread ({ commit }, { id }) {
+      console.log('Fetching thread: ', id)
+      return new Promise((resolve, reject) => {
+        onSnapshot(
+          doc(db, 'threads', id),
+          {
+            next: (snap) => {
+              const thread = { ...snap.data(), id: snap.id }
+              commit('setThread', { thread })
+              resolve(thread)
+            },
+            error: (error) => {
+              console.log('error ', error)
+              reject(error)
+            }
+          }
+        )
+      })
+    },
+    fetchUser ({ commit }, { id }) {
+      console.log('Fetching user: ', id)
+      return new Promise((resolve, reject) => {
+        onSnapshot(
+          doc(db, 'users', id),
+          {
+            next: (snap) => {
+              const user = { ...snap.data(), id: snap.id }
+              commit('setUser', { user })
+              resolve(user)
+            },
+            error: (error) => {
+              console.log('error ', error)
+              reject(error)
+            }
+          }
+        )
+      })
+    },
+    fetchPost ({ commit }, { id }) {
+      console.log('Fetching post: ', id)
+      return new Promise((resolve, reject) => {
+        onSnapshot(
+          doc(db, 'posts', id),
+          {
+            next: (snap) => {
+              const post = { ...snap.data(), id: snap.id }
+              commit('setPost', { post })
+              resolve(post)
+            },
+            error: (error) => {
+              console.log('error ', error)
+              reject(error)
+            }
+          }
+        )
+      })
     }
-
   },
   mutations: {
     setThread (state, { thread }) {
