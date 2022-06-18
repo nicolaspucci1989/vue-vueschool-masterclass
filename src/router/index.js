@@ -7,7 +7,7 @@ import CategoryShow from '@/pages/CategoryShow'
 import ProfileShow from '@/pages/ProfileShow'
 import ThreadCreate from '@/pages/ThreadCreate'
 import ThreadEdit from '@/pages/ThreadEdit'
-import store from '@/store'
+// import store from '@/store'
 
 const routes = [
   {
