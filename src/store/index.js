@@ -1,6 +1,6 @@
 import { createStore } from 'vuex'
 import { findById, upsert } from '@/helpers'
-import { doc, onSnapshot } from '@firebase/firestore'
+import { doc, onSnapshot, collection, query } from '@firebase/firestore'
 import { db } from '@/firebase'
 
 export default createStore({
@@ -122,11 +122,36 @@ export default createStore({
     fetchThreads ({ dispatch }, { ids }) {
       return dispatch('fetchItems', { ids, resource: 'threads' })
     },
+    fetchForums ({ dispatch }, { ids }) {
+      return dispatch('fetchItems', { ids, resource: 'forums' })
+    },
     fetchPosts ({ dispatch }, { ids }) {
       return dispatch('fetchItems', { ids, resource: 'posts' })
     },
     fetchItems ({ dispatch }, { ids, resource }) {
       return Promise.all(ids.map(id => dispatch('fetchItem', { id, resource })))
+    },
+    fetchAllCategories ({ commit }) {
+      console.log('Fetching all categories')
+      return new Promise((resolve, reject) => {
+        onSnapshot(
+          query(collection(db, 'categories')),
+          {
+            next: (snap) => {
+              const categories = snap.docs.map(doc => {
+                const item = { id: doc.id, ...doc.data() }
+                commit('setItem', { resource: 'categories', item })
+                return item
+              })
+              resolve(categories)
+            },
+            error: (error) => {
+              console.log('error ', error)
+              reject(error)
+            }
+          }
+        )
+      })
     }
   },
   mutations: {
