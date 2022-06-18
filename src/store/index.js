@@ -115,6 +115,18 @@ export default createStore({
           }
         )
       })
+    },
+    fetchUsers ({ dispatch }, { ids }) {
+      return dispatch('fetchItems', { ids, resource: 'users' })
+    },
+    fetchThreads ({ dispatch }, { ids }) {
+      return dispatch('fetchItems', { ids, resource: 'threads' })
+    },
+    fetchPosts ({ dispatch }, { ids }) {
+      return dispatch('fetchItems', { ids, resource: 'posts' })
+    },
+    fetchItems ({ dispatch }, { ids, resource }) {
+      return Promise.all(ids.map(id => dispatch('fetchItem', { id, resource })))
     }
   },
   mutations: {
