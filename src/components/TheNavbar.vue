@@ -2,7 +2,7 @@
   <header class="header" id="header">
 
     <router-link :to="{name: 'Home'}" class="logo">
-      <img src="../assets/svg/vueschool-logo.svg">
+      <img src="../assets/svg/vueschool-logo.svg" alt="logo">
     </router-link>
 
     <div class="btn-hamburger">

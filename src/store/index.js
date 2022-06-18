@@ -40,6 +40,7 @@ export default createStore({
     thread: state => {
       return (id) => {
         const thread = findById(state.threads, id)
+        if (!thread) return {}
         return {
           ...thread,
           get author () {
@@ -87,49 +88,41 @@ export default createStore({
       commit('setItem', { resource: 'posts', item: newPost })
       return newThread
     },
+    /**
+    * Fetch Single Resource
+    **/
+    fetchCategory ({ dispatch }, { id }) {
+      return dispatch('fetchItem', { resource: 'category', id })
+    },
+    fetchForum ({ dispatch }, { id }) {
+      return dispatch('fetchItem', { resource: 'forums', id })
+    },
     fetchThread ({ dispatch }, { id }) {
       return dispatch('fetchItem', { resource: 'threads', id })
-    },
-    fetchUser ({ dispatch }, { id }) {
-      return dispatch('fetchItem', { resource: 'users', id })
     },
     fetchPost ({ dispatch }, { id }) {
       return dispatch('fetchItem', { resource: 'posts', id })
     },
-    fetchItem ({ commit }, { id, resource }) {
-      console.log('Fetching ', resource, ':', id)
-      return new Promise((resolve, reject) => {
-        onSnapshot(
-          doc(db, resource, id),
-          {
-            next: (snap) => {
-              if (!snap.exists()) reject(new Error('Resource does not exists'))
-              const item = { ...snap.data(), id: snap.id }
-              commit('setItem', { resource, id, item })
-              resolve(item)
-            },
-            error: (error) => {
-              console.log('error ', error)
-              reject(error)
-            }
-          }
-        )
-      })
+    fetchUser ({ dispatch }, { id }) {
+      return dispatch('fetchItem', { resource: 'users', id })
     },
-    fetchUsers ({ dispatch }, { ids }) {
-      return dispatch('fetchItems', { ids, resource: 'users' })
-    },
-    fetchThreads ({ dispatch }, { ids }) {
-      return dispatch('fetchItems', { ids, resource: 'threads' })
+    /**
+     * Fetch Multiple Resources
+     **/
+    fetchCategories ({ dispatch }, { ids }) {
+      return dispatch('fetchItems', { ids, resource: 'categories' })
     },
     fetchForums ({ dispatch }, { ids }) {
       return dispatch('fetchItems', { ids, resource: 'forums' })
     },
+    fetchThreads ({ dispatch }, { ids }) {
+      return dispatch('fetchItems', { ids, resource: 'threads' })
+    },
     fetchPosts ({ dispatch }, { ids }) {
       return dispatch('fetchItems', { ids, resource: 'posts' })
     },
-    fetchItems ({ dispatch }, { ids, resource }) {
-      return Promise.all(ids.map(id => dispatch('fetchItem', { id, resource })))
+    fetchUsers ({ dispatch }, { ids }) {
+      return dispatch('fetchItems', { ids, resource: 'users' })
     },
     fetchAllCategories ({ commit }) {
       console.log('Fetching all categories')
@@ -152,6 +145,29 @@ export default createStore({
           }
         )
       })
+    },
+    fetchItem ({ commit }, { id, resource }) {
+      console.log('Fetching ', resource, ':', id)
+      return new Promise((resolve, reject) => {
+        onSnapshot(
+          doc(db, resource, id),
+          {
+            next: (snap) => {
+              if (!snap.exists()) reject(new Error('Resource does not exists'))
+              const item = { ...snap.data(), id: snap.id }
+              commit('setItem', { resource, id, item })
+              resolve(item)
+            },
+            error: (error) => {
+              console.log('error ', error)
+              reject(error)
+            }
+          }
+        )
+      })
+    },
+    fetchItems ({ dispatch }, { ids, resource }) {
+      return Promise.all(ids.map(id => dispatch('fetchItem', { id, resource })))
     }
   },
   mutations: {
