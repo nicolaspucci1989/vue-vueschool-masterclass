@@ -92,7 +92,7 @@ export default createStore({
     * Fetch Single Resource
     **/
     fetchCategory ({ dispatch }, { id }) {
-      return dispatch('fetchItem', { resource: 'category', id })
+      return dispatch('fetchItem', { resource: 'categories', id })
     },
     fetchForum ({ dispatch }, { id }) {
       return dispatch('fetchItem', { resource: 'forums', id })
@@ -184,6 +184,10 @@ export default createStore({
 function makeAppendParentToChildMutation ({ parent, child }) {
   return (state, { childId, parentId }) => {
     const resource = findById(state[parent], parentId)
+    if (!resource) {
+      console.warn(`Appending ${child} to ${parent} ${parentId} failed because the parent didn't exist`)
+      return
+    }
     resource[child] = resource[child] || []
     if (!resource[child].includes(childId)) {
       resource[child].push(childId)
