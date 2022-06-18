@@ -1,14 +1,23 @@
 import { findById } from '@/helpers'
-import { collection, doc, onSnapshot, query } from '@firebase/firestore'
+import { collection, doc, onSnapshot, query, arrayUnion, writeBatch } from '@firebase/firestore'
 import { db } from '@/firebase'
 
 export default {
-  createPost ({ commit, state }, post) {
-    post.id = 'gggg' + Math.random()
+  async createPost ({ commit, state }, post) {
     post.userId = state.authId
     post.publishedAt = Math.floor(Date.now() / 1000)
-    commit('setItem', { resource: 'posts', item: post })
-    commit('appendPostToThread', { childId: post.id, parentId: post.threadId })
+
+    const batch = writeBatch(db)
+    const postRef = doc(collection(db, 'posts'))
+    const threadRef = doc(db, 'threads', post.threadId)
+    batch.set(postRef, post)
+    batch.update(threadRef,
+      'posts', arrayUnion(postRef.id),
+      'contributors', arrayUnion(state.authId))
+    await batch.commit()
+
+    commit('setItem', { resource: 'posts', item: { ...post, id: postRef.id } })
+    commit('appendPostToThread', { childId: postRef.id, parentId: post.threadId })
     commit('appendContributorToThread', { childId: state.authId, parentId: post.threadId })
   },
   updateUser ({ commit }, user) {
