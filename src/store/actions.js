@@ -123,7 +123,7 @@ export default {
   fetchItem: ({ commit }, { id, resource }) => {
     console.log('Fetching ', resource, ':', id)
     return new Promise((resolve, reject) => {
-      onSnapshot(
+      const unsubscribe = onSnapshot(
         doc(db, resource, id),
         {
           next: (snap) => {
@@ -138,7 +138,12 @@ export default {
           }
         }
       )
+      commit('appendUnsubscribe', { unsubscribe })
     })
   },
-  fetchItems: ({ dispatch }, { ids, resource }) => Promise.all(ids.map(id => dispatch('fetchItem', { id, resource })))
+  fetchItems: ({ dispatch }, { ids, resource }) => Promise.all(ids.map(id => dispatch('fetchItem', { id, resource }))),
+  unsubscribeAllSnapshots ({ state, commit }) {
+    state.unsubscribes.forEach(unsubscribe => unsubscribe())
+    commit('clearUnsubscribes')
+  }
 }
