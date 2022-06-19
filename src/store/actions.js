@@ -130,7 +130,7 @@ export default {
             if (!snap.exists()) reject(new Error('Resource does not exists'))
             const item = { ...snap.data(), id: snap.id }
             commit('setItem', { resource, id, item })
-            setTimeout(() => resolve(item), 500)
+            resolve(item)
           },
           error: (error) => {
             console.log('error ', error)
