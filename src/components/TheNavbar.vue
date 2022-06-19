@@ -2,7 +2,7 @@
   <header class="header" id="header">
 
     <router-link :to="{name: 'Home'}" class="logo">
-      <img src="../assets/svg/vueschool-logo.svg">
+      <img src="../assets/svg/vueschool-logo.svg" alt="logo">
     </router-link>
 
     <div class="btn-hamburger">
@@ -16,7 +16,7 @@
     <nav class="navbar">
       <ul>
 
-        <li class="navbar-user">
+        <li v-if="authUser" class="navbar-user">
           <router-link :to="{name: 'Profile'}">
             <img class="avatar-small" :src="authUser.avatar" :alt="`${authUser.name} profile picture`">
             <span>
