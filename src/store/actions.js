@@ -1,5 +1,5 @@
 import { docToResource, findById } from '@/helpers'
-import { collection, doc, onSnapshot, query, arrayUnion, writeBatch, serverTimestamp, getDoc, increment } from '@firebase/firestore'
+import { collection, doc, onSnapshot, query, arrayUnion, writeBatch, serverTimestamp, getDoc, increment, updateDoc } from '@firebase/firestore'
 import { db } from '@/firebase'
 
 export default {
@@ -24,6 +24,20 @@ export default {
   },
   updateUser ({ commit }, user) {
     commit('setItem', { resource: 'users', item: user })
+  },
+  async updatePost ({ commit, state }, { text, id }) {
+    const post = {
+      text,
+      edited: {
+        at: serverTimestamp(),
+        by: state.authId,
+        moderated: false
+      }
+    }
+    const postRef = doc(db, 'posts', id)
+    await updateDoc(postRef, post)
+    const updatedPost = await getDoc(postRef)
+    commit('setItem', { resource: 'posts', item: updatedPost })
   },
   async createThread ({ commit, state, dispatch }, { text, title, forumId }) {
     const userId = state.authId
