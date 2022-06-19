@@ -8,6 +8,7 @@ import ProfileShow from '@/pages/ProfileShow'
 import ThreadCreate from '@/pages/ThreadCreate'
 import ThreadEdit from '@/pages/ThreadEdit'
 import store from '@/store'
+import Register from '@/pages/Register'
 
 const routes = [
   {
@@ -69,6 +70,11 @@ const routes = [
     name: 'ThreadEdit',
     component: ThreadEdit,
     props: true
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: Register
   },
   {
     path: '/:pathMatch(.*)*',
