@@ -9,6 +9,7 @@
 import CategoryList from '@/components/CategoryList'
 import { mapActions } from 'vuex'
 import asyncDataStatus from '@/mixins/asyncDataStatus'
+
 export default {
   name: 'PageHome',
   components: { CategoryList },
