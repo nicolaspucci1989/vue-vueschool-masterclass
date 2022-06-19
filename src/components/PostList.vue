@@ -16,12 +16,19 @@
       </div>
 
       <div class="post-content">
-        <div>
-          <p>
+        <div class="col-full">
+          <PostEditor :post="post" v-if="editing === post.id"/>
+          <p v-else>
             {{ post.text }}
           </p>
         </div>
-        <a href="#" style="margin-left: auto; padding-left: 10px" class="link-unstyled" title="Make a change">
+        <a
+          @click.prevent="toggleEditMode(post.id)"
+          href="#"
+          style="margin-left: auto; padding-left: 10px"
+          class="link-unstyled"
+          title="Make a change"
+        >
           <fa-icon icon="pencil-alt"/>
         </a>
       </div>
@@ -37,12 +44,19 @@
 
 <script>
 
+import PostEditor from '@/components/PostEditor'
 export default {
   name: 'PostList',
+  components: { PostEditor },
   props: {
     posts: {
       required: true,
       type: Array
+    }
+  },
+  data () {
+    return {
+      editing: false
     }
   },
   computed: {
@@ -53,6 +67,9 @@ export default {
   methods: {
     userById (userId) {
       return this.$store.getters.user(userId)
+    },
+    toggleEditMode (id) {
+      this.editing = id === this.editing ? null : id
     }
   }
 }
