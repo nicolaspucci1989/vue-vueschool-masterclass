@@ -58,11 +58,11 @@ export default {
   },
   methods: {
     async register () {
+      await this.$store.dispatch('registerUserWithEmailAndPassword', this.form)
       this.$router.push('/')
     }
   },
   async created () {
-    await this.$store.dispatch('registerUserWithEmailAndPassword', this.form)
     this.$emit('ready')
   }
 }

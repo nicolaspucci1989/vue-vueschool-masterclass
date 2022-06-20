@@ -90,7 +90,12 @@ export default {
   fetchThread: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'threads', id }),
   fetchPost: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'posts', id }),
   fetchUser: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'users', id }),
-  fetchAuthUser: ({ dispatch, state }) => dispatch('fetchItem', { resource: 'users', id: state.authId }),
+  fetchAuthUser: ({ dispatch, commit }) => {
+    const userId = auth.currentUser?.uid
+    if (!userId) return
+    dispatch('fetchItem', { resource: 'users', id: userId })
+    commit('setAuthId', userId)
+  },
   /**
    * Fetch Multiple Resources
    **/
