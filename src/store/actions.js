@@ -1,6 +1,6 @@
 import { docToResource, findById } from '@/helpers'
 import { collection, doc, onSnapshot, query, arrayUnion, writeBatch, serverTimestamp, getDoc, increment, updateDoc, setDoc } from '@firebase/firestore'
-import { createUserWithEmailAndPassword } from '@firebase/auth'
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from '@firebase/auth'
 import { db, auth } from '@/firebase'
 
 export default {
@@ -155,6 +155,13 @@ export default {
   async registerUserWithEmailAndPassword ({ dispatch }, { avatar = null, email, name, username, password }) {
     const result = await createUserWithEmailAndPassword(auth, email, password)
     await dispatch('createUser', { id: result.user.uid, email, name, username, avatar })
+  },
+  signInWithEmailAndPassword (context, { email, password }) {
+    return signInWithEmailAndPassword(auth, email, password)
+  },
+  async signOut ({ commit }) {
+    await signOut(auth)
+    commit('setAuthId', null)
   },
   async createUser ({ commit }, { id, email, name, username, avatar = null }) {
     const registeredAt = serverTimestamp()
