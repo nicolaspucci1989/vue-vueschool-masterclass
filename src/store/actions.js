@@ -20,8 +20,27 @@ import {
   signOut
 } from '@firebase/auth'
 import { auth, db } from '@/firebase'
+import { onAuthStateChanged } from 'firebase/auth'
 
 export default {
+  initAuthentication ({ commit, state }) {
+    return new Promise((resolve) => {
+      if (state.authObserverUnsubscribe) state.authObserverUnsubscribe()
+      const unsubscribe = onAuthStateChanged(
+        auth, async (user) => {
+          console.log('The user has changed: ', user)
+          this.dispatch('unsubscribeAuthUserSnapshot')
+          if (user) {
+            await this.dispatch('fetchAuthUser')
+            resolve(user)
+          } else {
+            resolve(null)
+          }
+        }
+      )
+      commit('setAuthObserverUnsubscribe', unsubscribe)
+    })
+  },
   async createPost ({ commit, state }, post) {
     post.userId = state.authId
     post.publishedAt = serverTimestamp()
@@ -111,7 +130,7 @@ export default {
   fetchAuthUser: async ({ dispatch, commit }) => {
     const userId = auth.currentUser?.uid
     if (!userId) return
-    dispatch('fetchItem', {
+    await dispatch('fetchItem', {
       resource: 'users',
       id: userId,
       handleUnsubscribe: (unsubscribe) => {
