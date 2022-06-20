@@ -177,10 +177,13 @@ export default {
         {
           next: (snap) => {
             console.log('snapshot', snap)
-            // if (!snap.exists()) reject(new Error('Resource does not exists'))
-            const item = { ...snap.data(), id: snap.id }
-            commit('setItem', { resource, id, item })
-            resolve(item)
+            if (snap.exists()) {
+              const item = { ...snap.data(), id: snap.id }
+              commit('setItem', { resource, id, item })
+              resolve(item)
+            } else {
+              resolve(null)
+            }
           },
           error: (error) => {
             console.log('error ', error)
