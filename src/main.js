@@ -6,11 +6,14 @@ import FontAwesome from '@/plugins/FontAwesome'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from './firebase'
 
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    store.dispatch('fetchAuthUser')
+onAuthStateChanged(
+  auth, async (user) => {
+    store.dispatch('unsubscribeAuthUserSnapshot')
+    if (user) {
+      store.dispatch('fetchAuthUser')
+    }
   }
-})
+)
 
 const forumApp = createApp(App)
 forumApp.use(router)
