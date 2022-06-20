@@ -1,5 +1,5 @@
 import { docToResource, findById } from '@/helpers'
-import { collection, doc, onSnapshot, query, arrayUnion, writeBatch, serverTimestamp, getDoc, increment, updateDoc } from '@firebase/firestore'
+import { collection, doc, onSnapshot, query, arrayUnion, writeBatch, serverTimestamp, getDoc, increment, updateDoc, setDoc } from '@firebase/firestore'
 import { db } from '@/firebase'
 
 export default {
@@ -145,5 +145,16 @@ export default {
   unsubscribeAllSnapshots ({ state, commit }) {
     state.unsubscribes.forEach(unsubscribe => unsubscribe())
     commit('clearUnsubscribes')
+  },
+  async createUser ({ commit }, { email, name, username, avatar = null }) {
+    const registeredAt = serverTimestamp()
+    const usernameLower = username.toLowerCase()
+    email = email.toLowerCase()
+    const user = { avatar, email, name, username, usernameLower, registeredAt }
+    const userRef = doc(collection(db, 'users'))
+    setDoc(userRef, user)
+    const newUser = await getDoc(userRef)
+    commit('setItem', { resource: 'users', item: newUser })
+    return docToResource(newUser)
   }
 }

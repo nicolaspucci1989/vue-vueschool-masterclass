@@ -56,8 +56,9 @@ export default {
     }
   },
   methods: {
-    register () {
-      console.log('submittin form', this.form)
+    async register () {
+      await this.$store.dispatch('createUser', this.form)
+      this.$router.push('/')
     }
   },
   created () {
