@@ -1,6 +1,6 @@
 import { docToResource, findById } from '@/helpers'
 import { collection, doc, onSnapshot, query, arrayUnion, writeBatch, serverTimestamp, getDoc, increment, updateDoc, setDoc } from '@firebase/firestore'
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from '@firebase/auth'
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } from '@firebase/auth'
 import { db, auth } from '@/firebase'
 
 export default {
@@ -159,6 +159,14 @@ export default {
   signInWithEmailAndPassword (context, { email, password }) {
     return signInWithEmailAndPassword(auth, email, password)
   },
+  async signInWithGoogle ({ dispatch }) {
+    const provider = new GoogleAuthProvider()
+    const response = await signInWithPopup(auth, provider)
+    const user = response.user
+    const userRef = doc(db, 'users', user.uid)
+    const userDoc = await getDoc(userRef)
+    if (!userDoc.exists()) { return dispatch('createUser', { id: user.uid, name: user.displayName, email: user.email, username: user.email, avatar: user.photoURL }) }
+  },
   async signOut ({ commit }) {
     await signOut(auth)
     commit('setAuthId', null)
@@ -169,7 +177,7 @@ export default {
     email = email.toLowerCase()
     const user = { avatar, email, name, username, usernameLower, registeredAt }
     const userRef = doc(db, 'users', id)
-    setDoc(userRef, user)
+    await setDoc(userRef, user)
     const newUser = await getDoc(userRef)
     commit('setItem', { resource: 'users', item: newUser })
     return docToResource(newUser)
