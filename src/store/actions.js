@@ -1,6 +1,7 @@
 import { docToResource, findById } from '@/helpers'
 import { collection, doc, onSnapshot, query, arrayUnion, writeBatch, serverTimestamp, getDoc, increment, updateDoc, setDoc } from '@firebase/firestore'
-import { db } from '@/firebase'
+import { createUserWithEmailAndPassword } from '@firebase/auth'
+import { db, auth } from '@/firebase'
 
 export default {
   async createPost ({ commit, state }, post) {
@@ -146,12 +147,16 @@ export default {
     state.unsubscribes.forEach(unsubscribe => unsubscribe())
     commit('clearUnsubscribes')
   },
-  async createUser ({ commit }, { email, name, username, avatar = null }) {
+  async registerUserWithEmailAndPassword ({ dispatch }, { avatar = null, email, name, username, password }) {
+    const result = await createUserWithEmailAndPassword(auth, email, password)
+    await dispatch('createUser', { id: result.user.uid, email, name, username, avatar })
+  },
+  async createUser ({ commit }, { id, email, name, username, avatar = null }) {
     const registeredAt = serverTimestamp()
     const usernameLower = username.toLowerCase()
     email = email.toLowerCase()
     const user = { avatar, email, name, username, usernameLower, registeredAt }
-    const userRef = doc(collection(db, 'users'))
+    const userRef = doc(db, 'users', id)
     setDoc(userRef, user)
     const newUser = await getDoc(userRef)
     commit('setItem', { resource: 'users', item: newUser })
