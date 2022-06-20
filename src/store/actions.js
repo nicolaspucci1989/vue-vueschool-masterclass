@@ -1,6 +1,25 @@
 import { docToResource, findById } from '@/helpers'
-import { collection, doc, onSnapshot, query, arrayUnion, writeBatch, serverTimestamp, getDoc, increment, updateDoc } from '@firebase/firestore'
-import { db } from '@/firebase'
+import {
+  arrayUnion,
+  collection,
+  doc,
+  getDoc,
+  increment,
+  onSnapshot,
+  query,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+  writeBatch
+} from '@firebase/firestore'
+import {
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut
+} from '@firebase/auth'
+import { auth, db } from '@/firebase'
 
 export default {
   async createPost ({ commit, state }, post) {
@@ -89,7 +108,18 @@ export default {
   fetchThread: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'threads', id }),
   fetchPost: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'posts', id }),
   fetchUser: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'users', id }),
-  fetchAuthUser: ({ dispatch, state }) => dispatch('fetchItem', { resource: 'users', id: state.authId }),
+  fetchAuthUser: async ({ dispatch, commit }) => {
+    const userId = auth.currentUser?.uid
+    if (!userId) return
+    dispatch('fetchItem', {
+      resource: 'users',
+      id: userId,
+      handleUnsubscribe: (unsubscribe) => {
+        commit('setAuthUserUnsubscribe', unsubscribe)
+      }
+    })
+    commit('setAuthId', userId)
+  },
   /**
    * Fetch Multiple Resources
    **/
@@ -120,14 +150,15 @@ export default {
       )
     })
   },
-  fetchItem: ({ commit }, { id, resource }) => {
+  fetchItem: ({ commit }, { id, resource, handleUnsubscribe = null }) => {
     console.log('Fetching ', resource, ':', id)
     return new Promise((resolve, reject) => {
       const unsubscribe = onSnapshot(
         doc(db, resource, id),
         {
           next: (snap) => {
-            if (!snap.exists()) reject(new Error('Resource does not exists'))
+            console.log('snapshot', snap)
+            // if (!snap.exists()) reject(new Error('Resource does not exists'))
             const item = { ...snap.data(), id: snap.id }
             commit('setItem', { resource, id, item })
             resolve(item)
@@ -138,12 +169,61 @@ export default {
           }
         }
       )
-      commit('appendUnsubscribe', { unsubscribe })
+      if (handleUnsubscribe) {
+        handleUnsubscribe(unsubscribe)
+      } else {
+        commit('appendUnsubscribe', { unsubscribe })
+      }
     })
   },
   fetchItems: ({ dispatch }, { ids, resource }) => Promise.all(ids.map(id => dispatch('fetchItem', { id, resource }))),
   unsubscribeAllSnapshots ({ state, commit }) {
     state.unsubscribes.forEach(unsubscribe => unsubscribe())
     commit('clearUnsubscribes')
+  },
+  async registerUserWithEmailAndPassword ({ dispatch }, { avatar = null, email, name, username, password }) {
+    const result = await createUserWithEmailAndPassword(auth, email, password)
+    await dispatch('createUser', { id: result.user.uid, email, name, username, avatar })
+  },
+  signInWithEmailAndPassword (context, { email, password }) {
+    return signInWithEmailAndPassword(auth, email, password)
+  },
+  async signInWithGoogle ({ dispatch }) {
+    const provider = new GoogleAuthProvider()
+    const response = await signInWithPopup(auth, provider)
+    const user = response.user
+    const userRef = doc(db, 'users', user.uid)
+    const userDoc = await getDoc(userRef)
+    if (!userDoc.exists()) {
+      return dispatch('createUser',
+        {
+          id: user.uid,
+          name: user.displayName,
+          email: user.email,
+          username: user.email,
+          avatar: user.photoURL
+        })
+    }
+  },
+  async signOut ({ commit }) {
+    await signOut(auth)
+    commit('setAuthId', null)
+  },
+  async createUser ({ commit }, { id, email, name, username, avatar = null }) {
+    const registeredAt = serverTimestamp()
+    const usernameLower = username.toLowerCase()
+    email = email.toLowerCase()
+    const user = { avatar, email, name, username, usernameLower, registeredAt }
+    const userRef = doc(db, 'users', id)
+    await setDoc(userRef, user)
+    const newUser = await getDoc(userRef)
+    commit('setItem', { resource: 'users', item: newUser })
+    return docToResource(newUser)
+  },
+  async unsubscribeAuthUserSnapshot ({ state, commit }) {
+    if (state.authUserUnsubscribe) {
+      state.authUserUnsubscribe()
+      commit('setAuthUserUnsubscribe', null)
+    }
   }
 }

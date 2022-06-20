@@ -43,6 +43,7 @@ export default {
     },
     threads () {
       if (!this.forum) return []
+      if (!this.forum.threads) return []
       return this.forum.threads.map(threadId => this.$store.getters.thread(threadId))
     }
   },
@@ -51,8 +52,10 @@ export default {
   },
   async created () {
     const forum = await this.fetchForum({ id: this.id })
-    const threads = await this.fetchThreads({ ids: forum.threads })
-    await this.fetchUsers({ ids: threads.map(thread => thread.userId) })
+    if (forum.threads) {
+      const threads = await this.fetchThreads({ ids: forum.threads })
+      await this.fetchUsers({ ids: threads.map(thread => thread.userId) })
+    }
     this.asyncDataStatus_fetched()
   }
 }
