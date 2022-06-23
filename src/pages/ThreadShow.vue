@@ -2,18 +2,24 @@
   <div v-if="asyncDataStatus_ready" class="col-large push-top">
     <h1>
       {{ thread.title }}
-      <router-link :to="{ name: 'ThreadEdit', id: this.id }">
+      <router-link v-if="thread.userId === authUser?.id" :to="{ name: 'ThreadEdit', id: this.id }">
         <button class="btn-green">Edit Thread</button>
       </router-link>
     </h1>
     <p>
       By <a href="#" class="link-unstyled">{{ thread.author?.name }}</a>,
-      <AppDate :timestamp="thread.publishedAt" />.
+      <AppDate :timestamp="thread.publishedAt"/>
+      .
       <span style="float:right; margin-top: 2px;" class="hide-mobile text-faded text-small">
         {{ thread.repliesCount }} replies by {{ thread.contributorsCount }} contributors</span>
     </p>
-    <post-list :posts="threadPosts" />
-    <post-editor @save="addPost" />
+    <post-list :posts="threadPosts"/>
+    <post-editor v-if="authUser" @save="addPost"/>
+    <div v-else class="text-center" style="margin-bottom: 50px">
+      <router-link :to="{name: 'SignIn', query: {redirectTo: $route.path}}">Sign in</router-link>
+      or
+      <router-link :to="{name: 'Register',  query: {redirectTo: $route.path}}">Register</router-link>
+    </div>
   </div>
 </template>
 
@@ -22,12 +28,16 @@
 import PostList from '@/components/PostList'
 import PostEditor from '@/components/PostEditor'
 import AppDate from '@/components/AppDate'
-import { mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 import asyncDataStatus from '@/mixins/asyncDataStatus'
 
 export default {
   name: 'ThreadShow',
-  components: { AppDate, PostEditor, PostList },
+  components: {
+    AppDate,
+    PostEditor,
+    PostList
+  },
   mixins: [asyncDataStatus],
   props: {
     id: {
@@ -36,6 +46,7 @@ export default {
     }
   },
   computed: {
+    ...mapGetters(['authUser']),
     threads () {
       return this.$store.state.threads
     },
@@ -101,7 +112,7 @@ export default {
   margin-right: 5px;
 }
 
-.post .user-info>* {
+.post .user-info > * {
   margin-bottom: 10px;
 }
 
@@ -127,7 +138,7 @@ export default {
     order: 2;
   }
 
-  .post .user-info>* {
+  .post .user-info > * {
     margin-right: 5px;
     margin-bottom: 0;
   }

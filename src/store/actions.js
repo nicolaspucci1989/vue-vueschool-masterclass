@@ -1,9 +1,11 @@
 import { docToResource, findById } from '@/helpers'
 import {
+  where,
   arrayUnion,
   collection,
   doc,
   getDoc,
+  getDocs,
   increment,
   onSnapshot,
   query,
@@ -20,8 +22,27 @@ import {
   signOut
 } from '@firebase/auth'
 import { auth, db } from '@/firebase'
+import { onAuthStateChanged } from 'firebase/auth'
 
 export default {
+  initAuthentication ({ commit, state }) {
+    return new Promise((resolve) => {
+      if (state.authObserverUnsubscribe) state.authObserverUnsubscribe()
+      const unsubscribe = onAuthStateChanged(
+        auth, async (user) => {
+          console.log('The user has changed: ', user)
+          this.dispatch('unsubscribeAuthUserSnapshot')
+          if (user) {
+            await this.dispatch('fetchAuthUser')
+            resolve(user)
+          } else {
+            resolve(null)
+          }
+        }
+      )
+      commit('setAuthObserverUnsubscribe', unsubscribe)
+    })
+  },
   async createPost ({ commit, state }, post) {
     post.userId = state.authId
     post.publishedAt = serverTimestamp()
@@ -41,7 +62,18 @@ export default {
     commit('appendPostToThread', { childId: newPost.id, parentId: post.threadId })
     commit('appendContributorToThread', { childId: state.authId, parentId: post.threadId })
   },
-  updateUser ({ commit }, user) {
+  async updateUser ({ commit }, user) {
+    const updates = {
+      avatar: user.avatar || null,
+      username: user.username || null,
+      name: user.name || null,
+      bio: user.bio || null,
+      website: user.website || null,
+      email: user.email || null,
+      location: user.location || null
+    }
+    const userRef = doc(db, 'users', user.id)
+    await updateDoc(userRef, updates)
     commit('setItem', { resource: 'users', item: user })
   },
   async updatePost ({ commit, state }, { text, id }) {
@@ -100,6 +132,14 @@ export default {
     commit('setItem', { resource: 'posts', item: newPost })
     return docToResource(newThread)
   },
+  async fetchAuthUserPosts ({ commit, state }) {
+    const postsRef = collection(db, 'posts')
+    const q = query(postsRef, where('userId', '==', state.authId))
+    const posts = await getDocs(q)
+    posts.forEach(item => {
+      commit('setItem', { resource: 'posts', item })
+    })
+  },
   /**
    * Fetch Single Resource
    **/
@@ -111,7 +151,7 @@ export default {
   fetchAuthUser: async ({ dispatch, commit }) => {
     const userId = auth.currentUser?.uid
     if (!userId) return
-    dispatch('fetchItem', {
+    await dispatch('fetchItem', {
       resource: 'users',
       id: userId,
       handleUnsubscribe: (unsubscribe) => {
@@ -158,10 +198,13 @@ export default {
         {
           next: (snap) => {
             console.log('snapshot', snap)
-            // if (!snap.exists()) reject(new Error('Resource does not exists'))
-            const item = { ...snap.data(), id: snap.id }
-            commit('setItem', { resource, id, item })
-            resolve(item)
+            if (snap.exists()) {
+              const item = { ...snap.data(), id: snap.id }
+              commit('setItem', { resource, id, item })
+              resolve(item)
+            } else {
+              resolve(null)
+            }
           },
           error: (error) => {
             console.log('error ', error)

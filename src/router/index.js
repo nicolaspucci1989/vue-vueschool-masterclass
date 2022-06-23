@@ -10,6 +10,7 @@ import ThreadEdit from '@/pages/ThreadEdit'
 import store from '@/store'
 import Register from '@/pages/Register'
 import SignIn from '@/pages/SignIn'
+import { findById } from '@/helpers'
 
 const routes = [
   {
@@ -21,13 +22,14 @@ const routes = [
     path: '/me',
     name: 'Profile',
     component: ProfileShow,
-    meta: { toTop: true, smoothScroll: true }
+    meta: { toTop: true, smoothScroll: true, requiresAuth: true }
   },
   {
     path: '/me/edit',
     name: 'ProfileEdit',
     component: ProfileShow,
-    props: { edit: true }
+    props: { edit: true },
+    meta: { requiresAuth: true }
   },
   {
     path: '/category/:id',
@@ -45,42 +47,55 @@ const routes = [
     path: '/thread/:id',
     name: 'ThreadShow',
     component: ThreadShow,
-    props: true
-    // beforeEnter (to, from, next) {
-    //   const threadExists = store.state.threads.find(thread => thread.id === to.params.id)
-    //   if (threadExists) {
-    //     next()
-    //   } else {
-    //     next({
-    //       name: 'NotFound',
-    //       params: { pathMatch: to.path.substring(1).split('/') },
-    //       query: to.query,
-    //       hash: to.hash
-    //     })
-    //   }
-    // }
+    props: true,
+    async beforeEnter (to, from, next) {
+      await store.dispatch('fetchThread', { id: to.params.id })
+      const threadExists = findById(store.state.threads, to.params.id)
+      if (threadExists) {
+        next()
+      } else {
+        next({
+          name: 'NotFound',
+          params: { pathMatch: to.path.substring(1).split('/') },
+          query: to.query,
+          hash: to.hash
+        })
+      }
+    }
   },
   {
     path: '/forum/:forumId/thread/create',
     name: 'ThreadCreate',
     component: ThreadCreate,
-    props: true
+    props: true,
+    meta: { requiresAuth: true }
   },
   {
     path: '/thread/:id/edit',
     name: 'ThreadEdit',
     component: ThreadEdit,
-    props: true
+    props: true,
+    meta: { requiresAuth: true }
   },
   {
     path: '/register',
     name: 'Register',
-    component: Register
+    component: Register,
+    meta: { requiresGuest: true }
   },
   {
     path: '/signin',
     name: 'SignIn',
-    component: SignIn
+    component: SignIn,
+    meta: { requiresGuest: true }
+  },
+  {
+    path: '/logout',
+    name: 'SignOut',
+    async beforeEnter (to, from) {
+      await store.dispatch('signOut')
+      return { name: 'Home' }
+    }
   },
   {
     path: '/:pathMatch(.*)*',
@@ -98,5 +113,15 @@ const router = createRouter({
     return scroll
   }
 })
-router.beforeEach(() => { store.dispatch('unsubscribeAllSnapshots') })
+router.beforeEach(async (to) => {
+  await store.dispatch('initAuthentication')
+  store.dispatch('unsubscribeAllSnapshots')
+  if (to.meta.requiresAuth && !store.state.authId) {
+    return { name: 'SignIn', query: { redirectTo: to.path } }
+  }
+  if (to.meta.requiresGuest && store.state.authId) {
+    return { name: 'Home' }
+  }
+})
+
 export default router
