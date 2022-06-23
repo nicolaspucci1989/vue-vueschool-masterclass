@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container" style="width: 100%">
     <div class="flex-grid">
       <div class="col-3 push-top">
 
@@ -32,10 +32,12 @@ import PostList from '@/components/PostList'
 import { mapGetters } from 'vuex'
 import UserProfileCard from '@/components/UserProfileCard'
 import UserProfileCardEditor from '@/components/UserProfileCardEditor'
+import asyncDataStatus from '@/mixins/asyncDataStatus'
 
 export default {
   name: 'ProfileShow',
   components: { UserProfileCardEditor, UserProfileCard, PostList },
+  mixins: [asyncDataStatus],
   props: {
     edit: {
       type: Boolean,
@@ -44,6 +46,10 @@ export default {
   },
   computed: {
     ...mapGetters({ user: 'authUser' })
+  },
+  async created () {
+    await this.$store.dispatch('fetchAuthUserPosts')
+    this.asyncDataStatus_fetched()
   }
 }
 </script>

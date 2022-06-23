@@ -1,9 +1,11 @@
 import { docToResource, findById } from '@/helpers'
 import {
+  where,
   arrayUnion,
   collection,
   doc,
   getDoc,
+  getDocs,
   increment,
   onSnapshot,
   query,
@@ -118,6 +120,14 @@ export default {
     commit('setItem', { resource: 'threads', item: newThread })
     commit('setItem', { resource: 'posts', item: newPost })
     return docToResource(newThread)
+  },
+  async fetchAuthUserPosts ({ commit, state }) {
+    const postsRef = collection(db, 'posts')
+    const q = query(postsRef, where('userId', '==', state.authId))
+    const posts = await getDocs(q)
+    posts.forEach(item => {
+      commit('setItem', { resource: 'posts', item })
+    })
   },
   /**
    * Fetch Single Resource
