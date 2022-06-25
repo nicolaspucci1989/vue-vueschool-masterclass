@@ -16,3 +16,17 @@ export const docToResource = (doc) => {
   if (typeof doc?.data !== 'function') return doc
   return { ...doc.data(), id: doc.id }
 }
+
+export const makeAppendParentToChildMutation = ({ parent, child }) => {
+  return (state, { childId, parentId }) => {
+    const resource = findById(state[parent], parentId)
+    if (!resource) {
+      console.warn(`Appending ${child} to ${parent} ${parentId} failed because the parent didn't exist`)
+      return
+    }
+    resource[child] = resource[child] || []
+    if (!resource[child].includes(childId)) {
+      resource[child].push(childId)
+    }
+  }
+}

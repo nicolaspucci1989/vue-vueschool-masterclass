@@ -1,11 +1,9 @@
-import { docToResource, findById } from '@/helpers'
+import { docToResource } from '@/helpers'
 import {
-  where,
   arrayUnion,
   collection,
   doc,
   getDoc,
-  getDocs,
   increment,
   onSnapshot,
   query,
@@ -14,35 +12,9 @@ import {
   updateDoc,
   writeBatch
 } from '@firebase/firestore'
-import {
-  createUserWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  signOut
-} from '@firebase/auth'
-import { auth, db } from '@/firebase'
-import { onAuthStateChanged } from 'firebase/auth'
+import { db } from '@/firebase'
 
 export default {
-  initAuthentication ({ commit, state }) {
-    return new Promise((resolve) => {
-      if (state.authObserverUnsubscribe) state.authObserverUnsubscribe()
-      const unsubscribe = onAuthStateChanged(
-        auth, async (user) => {
-          console.log('The user has changed: ', user)
-          this.dispatch('unsubscribeAuthUserSnapshot')
-          if (user) {
-            await this.dispatch('fetchAuthUser')
-            resolve(user)
-          } else {
-            resolve(null)
-          }
-        }
-      )
-      commit('setAuthObserverUnsubscribe', unsubscribe)
-    })
-  },
   async createPost ({ commit, state }, post) {
     post.userId = state.authId
     post.publishedAt = serverTimestamp()
@@ -90,76 +62,13 @@ export default {
     const updatedPost = await getDoc(postRef)
     commit('setItem', { resource: 'posts', item: updatedPost })
   },
-  async createThread ({ commit, state, dispatch }, { text, title, forumId }) {
-    const userId = state.authId
-    const publishedAt = serverTimestamp()
-    const threadRef = doc(collection(db, 'threads'))
-    const thread = { forumId, title, publishedAt, userId, id: threadRef.id }
-
-    const userRef = doc(db, 'users', userId)
-    const forumRef = doc(db, 'forums', forumId)
-    const batch = writeBatch(db)
-
-    batch.set(threadRef, thread)
-    batch.update(userRef, 'threads', arrayUnion(threadRef.id))
-    batch.update(forumRef, 'threads', arrayUnion(threadRef.id))
-    await batch.commit()
-    const newThread = await getDoc(threadRef)
-
-    commit('setItem', { resource: 'threads', item: { ...newThread.data(), id: newThread.id } })
-    commit('appendThreadToUser', { parentId: userId, childId: threadRef.id })
-    commit('appendThreadToForum', { parentId: forumId, childId: threadRef.id })
-    await dispatch('createPost', { thread, threadId: threadRef.id, text })
-    return findById(state.threads, threadRef.id)
-  },
-  async updateThread ({ commit, state }, { title, text, id }) {
-    const thread = findById(state.threads, id)
-    const post = findById(state.posts, thread.posts[0])
-    let newThread = { ...thread, title }
-    let newPost = { ...post, text }
-
-    const threadRef = doc(db, 'threads', id)
-    const postRef = doc(db, 'posts', post.id)
-
-    const batch = writeBatch(db)
-    batch.update(threadRef, newThread)
-    batch.update(postRef, newPost)
-    await batch.commit()
-    newThread = await getDoc(threadRef)
-    newPost = await getDoc(postRef)
-
-    commit('setItem', { resource: 'threads', item: newThread })
-    commit('setItem', { resource: 'posts', item: newPost })
-    return docToResource(newThread)
-  },
-  async fetchAuthUserPosts ({ commit, state }) {
-    const postsRef = collection(db, 'posts')
-    const q = query(postsRef, where('userId', '==', state.authId))
-    const posts = await getDocs(q)
-    posts.forEach(item => {
-      commit('setItem', { resource: 'posts', item })
-    })
-  },
   /**
    * Fetch Single Resource
    **/
   fetchCategory: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'categories', id }),
   fetchForum: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'forums', id }),
-  fetchThread: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'threads', id }),
   fetchPost: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'posts', id }),
   fetchUser: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'users', id }),
-  fetchAuthUser: async ({ dispatch, commit }) => {
-    const userId = auth.currentUser?.uid
-    if (!userId) return
-    await dispatch('fetchItem', {
-      resource: 'users',
-      id: userId,
-      handleUnsubscribe: (unsubscribe) => {
-        commit('setAuthUserUnsubscribe', unsubscribe)
-      }
-    })
-    commit('setAuthId', userId)
-  },
   /**
    * Fetch Multiple Resources
    **/
@@ -223,34 +132,6 @@ export default {
   unsubscribeAllSnapshots ({ state, commit }) {
     state.unsubscribes.forEach(unsubscribe => unsubscribe())
     commit('clearUnsubscribes')
-  },
-  async registerUserWithEmailAndPassword ({ dispatch }, { avatar = null, email, name, username, password }) {
-    const result = await createUserWithEmailAndPassword(auth, email, password)
-    await dispatch('createUser', { id: result.user.uid, email, name, username, avatar })
-  },
-  signInWithEmailAndPassword (context, { email, password }) {
-    return signInWithEmailAndPassword(auth, email, password)
-  },
-  async signInWithGoogle ({ dispatch }) {
-    const provider = new GoogleAuthProvider()
-    const response = await signInWithPopup(auth, provider)
-    const user = response.user
-    const userRef = doc(db, 'users', user.uid)
-    const userDoc = await getDoc(userRef)
-    if (!userDoc.exists()) {
-      return dispatch('createUser',
-        {
-          id: user.uid,
-          name: user.displayName,
-          email: user.email,
-          username: user.email,
-          avatar: user.photoURL
-        })
-    }
-  },
-  async signOut ({ commit }) {
-    await signOut(auth)
-    commit('setAuthId', null)
   },
   async createUser ({ commit }, { id, email, name, username, avatar = null }) {
     const registeredAt = serverTimestamp()
