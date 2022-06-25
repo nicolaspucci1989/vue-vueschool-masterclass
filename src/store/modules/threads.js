@@ -69,7 +69,8 @@ export default {
       commit('setItem', { resource: 'posts', item: newPost })
       return docToResource(newThread)
     },
-    fetchThread: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'threads', id })
+    fetchThread: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'threads', id }),
+    fetchThreads: ({ dispatch }, { ids }) => dispatch('fetchItems', { ids, resource: 'threads' })
   },
   mutations: {
     appendPostToThread: makeAppendParentToChildMutation({ parent: 'threads', child: 'posts' }),

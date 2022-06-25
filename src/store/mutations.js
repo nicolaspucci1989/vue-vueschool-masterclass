@@ -10,6 +10,5 @@ export default {
   clearUnsubscribes (state) {
     state.unsubscribes = []
   },
-  appendThreadToForum: makeAppendParentToChildMutation({ parent: 'forums', child: 'threads' }),
   appendThreadToUser: makeAppendParentToChildMutation({ parent: 'users', child: 'threads' })
 }
