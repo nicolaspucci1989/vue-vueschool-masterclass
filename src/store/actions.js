@@ -1,4 +1,3 @@
-import { docToResource } from '@/helpers'
 import {
   arrayUnion,
   collection,
@@ -8,7 +7,6 @@ import {
   onSnapshot,
   query,
   serverTimestamp,
-  setDoc,
   updateDoc,
   writeBatch
 } from '@firebase/firestore'
@@ -34,20 +32,6 @@ export default {
     commit('appendPostToThread', { childId: newPost.id, parentId: post.threadId })
     commit('appendContributorToThread', { childId: state.authId, parentId: post.threadId })
   },
-  async updateUser ({ commit }, user) {
-    const updates = {
-      avatar: user.avatar || null,
-      username: user.username || null,
-      name: user.name || null,
-      bio: user.bio || null,
-      website: user.website || null,
-      email: user.email || null,
-      location: user.location || null
-    }
-    const userRef = doc(db, 'users', user.id)
-    await updateDoc(userRef, updates)
-    commit('setItem', { resource: 'users', item: user })
-  },
   async updatePost ({ commit, state }, { text, id }) {
     const post = {
       text,
@@ -66,12 +50,10 @@ export default {
    * Fetch Single Resource
    **/
   fetchCategory: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'categories', id }),
-  fetchUser: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'users', id }),
   /**
    * Fetch Multiple Resources
    **/
   fetchCategories: ({ dispatch }, { ids }) => dispatch('fetchItems', { ids, resource: 'categories' }),
-  fetchUsers: ({ dispatch }, { ids }) => dispatch('fetchItems', { ids, resource: 'users' }),
   fetchAllCategories ({ commit }) {
     console.log('Fetching all categories')
     return new Promise((resolve, reject) => {
@@ -127,17 +109,6 @@ export default {
   unsubscribeAllSnapshots ({ state, commit }) {
     state.unsubscribes.forEach(unsubscribe => unsubscribe())
     commit('clearUnsubscribes')
-  },
-  async createUser ({ commit }, { id, email, name, username, avatar = null }) {
-    const registeredAt = serverTimestamp()
-    const usernameLower = username.toLowerCase()
-    email = email.toLowerCase()
-    const user = { avatar, email, name, username, usernameLower, registeredAt }
-    const userRef = doc(db, 'users', id)
-    await setDoc(userRef, user)
-    const newUser = await getDoc(userRef)
-    commit('setItem', { resource: 'users', item: newUser })
-    return docToResource(newUser)
   },
   async unsubscribeAuthUserSnapshot ({ state, commit }) {
     if (state.authUserUnsubscribe) {

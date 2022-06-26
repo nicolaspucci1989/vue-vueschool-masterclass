@@ -1,4 +1,4 @@
-import { docToResource, makeAppendParentToChildMutation, upsert } from '@/helpers'
+import { docToResource, upsert } from '@/helpers'
 
 export default {
   setItem (state, { resource, item }) {
@@ -9,6 +9,5 @@ export default {
   },
   clearUnsubscribes (state) {
     state.unsubscribes = []
-  },
-  appendThreadToUser: makeAppendParentToChildMutation({ parent: 'users', child: 'threads' })
+  }
 }
