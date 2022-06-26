@@ -21,7 +21,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['fetchAuthUser']),
+    ...mapActions('auth', ['fetchAuthUser']),
     onPageReady () {
       this.showPage = true
       NProgress.done()
@@ -43,5 +43,5 @@ export default {
 
 <style>
 @import "assets/style.css";
-@import "~nprogress/nprogress.css"
+@import "~nprogress/nprogress.css";
 </style>

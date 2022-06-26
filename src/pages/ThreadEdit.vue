@@ -36,15 +36,16 @@ export default {
   },
   computed: {
     thread () {
-      return this.$store.state.threads.find(thread => thread.id === this.id)
+      return this.$store.state.threads.items.find(thread => thread.id === this.id)
     },
     text () {
-      const post = this.$store.state.posts.find(post => post.id === this.thread.posts[0])
+      const post = this.$store.state.posts.items.find(post => post.id === this.thread.posts[0])
       return post ? post.text : ''
     }
   },
   methods: {
-    ...mapActions(['updateThread', 'fetchThread', 'fetchPost']),
+    ...mapActions('threads', ['updateThread', 'fetchThread']),
+    ...mapActions('posts', ['fetchPost']),
     async save ({ title, text }) {
       const thread = await this.updateThread({
         id: this.id,

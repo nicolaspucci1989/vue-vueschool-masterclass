@@ -17,7 +17,7 @@ export default {
   },
   getters: {
     authUser: (state, getters, rootState, rootGetters) => {
-      return rootGetters['users/user'].user(state.authId)
+      return rootGetters['users/user'](state.authId)
     }
   },
   actions: {
@@ -27,9 +27,9 @@ export default {
         const unsubscribe = onAuthStateChanged(
           auth, async (user) => {
             console.log('The user has changed: ', user)
-            this.dispatch('unsubscribeAuthUserSnapshot')
+            this.dispatch('auth/unsubscribeAuthUserSnapshot')
             if (user) {
-              await this.dispatch('fetchAuthUser')
+              await this.dispatch('auth/fetchAuthUser')
               resolve(user)
             } else {
               resolve(null)
@@ -88,6 +88,12 @@ export default {
       posts.forEach(item => {
         commit('setItem', { resource: 'posts', item }, { root: true })
       })
+    },
+    async unsubscribeAuthUserSnapshot ({ state, commit }) {
+      if (state.authUserUnsubscribe) {
+        state.authUserUnsubscribe()
+        commit('setAuthUserUnsubscribe', null)
+      }
     }
   },
   mutations: {
