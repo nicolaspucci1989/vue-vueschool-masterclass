@@ -9,14 +9,15 @@ import {
 import { collection, doc, getDoc, getDocs, query, where } from '@firebase/firestore'
 
 export default {
+  namespaced: true,
   state: {
     authId: null,
     authUserUnsubscribe: null,
     authObserverUnsubscribe: null
   },
   getters: {
-    authUser: (state, getters) => {
-      return getters.user(state.authId)
+    authUser: (state, getters, rootState, rootGetters) => {
+      return rootGetters['users/user'].user(state.authId)
     }
   },
   actions: {
@@ -40,7 +41,7 @@ export default {
     },
     async registerUserWithEmailAndPassword ({ dispatch }, { avatar = null, email, name, username, password }) {
       const result = await createUserWithEmailAndPassword(auth, email, password)
-      await dispatch('createUser', { id: result.user.uid, email, name, username, avatar })
+      await dispatch('users/createUser', { id: result.user.uid, email, name, username, avatar }, { root: true })
     },
     signInWithEmailAndPassword (context, { email, password }) {
       return signInWithEmailAndPassword(auth, email, password)
@@ -52,14 +53,15 @@ export default {
       const userRef = doc(db, 'users', user.uid)
       const userDoc = await getDoc(userRef)
       if (!userDoc.exists()) {
-        return dispatch('createUser',
+        return dispatch('users/createUser',
           {
             id: user.uid,
             name: user.displayName,
             email: user.email,
             username: user.email,
             avatar: user.photoURL
-          })
+          },
+          { root: true })
       }
     },
     async signOut ({ commit }) {
@@ -75,7 +77,8 @@ export default {
         handleUnsubscribe: (unsubscribe) => {
           commit('setAuthUserUnsubscribe', unsubscribe)
         }
-      })
+      },
+      { root: true })
       commit('setAuthId', userId)
     },
     async fetchAuthUserPosts ({ commit, state }) {
@@ -83,7 +86,7 @@ export default {
       const q = query(postsRef, where('userId', '==', state.authId))
       const posts = await getDocs(q)
       posts.forEach(item => {
-        commit('setItem', { resource: 'posts', item })
+        commit('setItem', { resource: 'posts', item }, { root: true })
       })
     }
   },

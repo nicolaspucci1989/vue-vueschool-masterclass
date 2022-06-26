@@ -3,11 +3,12 @@ import { doc, getDoc, serverTimestamp, setDoc, updateDoc } from '@firebase/fires
 import { db } from '@/firebase'
 
 export default {
+  namespaced: true,
   state: {
     items: []
   },
   actions: {
-    fetchUser: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'users', id }),
+    fetchUser: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'users', id }, { root: true }),
     async updateUser ({ commit }, user) {
       const updates = {
         avatar: user.avatar || null,
@@ -20,9 +21,9 @@ export default {
       }
       const userRef = doc(db, 'users', user.id)
       await updateDoc(userRef, updates)
-      commit('setItem', { resource: 'users', item: user })
+      commit('setItem', { resource: 'users', item: user }, { root: true })
     },
-    fetchUsers: ({ dispatch }, { ids }) => dispatch('fetchItems', { ids, resource: 'users' }),
+    fetchUsers: ({ dispatch }, { ids }) => dispatch('fetchItems', { ids, resource: 'users' }, { root: true }),
     async createUser ({ commit }, { id, email, name, username, avatar = null }) {
       const registeredAt = serverTimestamp()
       const usernameLower = username.toLowerCase()
@@ -31,7 +32,7 @@ export default {
       const userRef = doc(db, 'users', id)
       await setDoc(userRef, user)
       const newUser = await getDoc(userRef)
-      commit('setItem', { resource: 'users', item: newUser })
+      commit('setItem', { resource: 'users', item: newUser }, { root: true })
       return docToResource(newUser)
     }
   },
@@ -39,20 +40,20 @@ export default {
     appendThreadToUser: makeAppendParentToChildMutation({ parent: 'users', child: 'threads' })
   },
   getters: {
-    user: state => {
+    user: (state, getters, rootState) => {
       return (id) => {
         const user = findById(state.users, id)
         if (!user) return null
         return {
           ...user,
           get posts () {
-            return state.posts.filter(post => post.userId === user.id)
+            return rootState.posts.items.filter(post => post.userId === user.id)
           },
           get postsCount () {
             return user.postsCount || 0
           },
           get threads () {
-            return state.threads.filter(thread => thread.userId === user.id)
+            return rootState.threads.items.filter(thread => thread.userId === user.id)
           },
           get threadsCount () {
             return user.threads?.length || 0

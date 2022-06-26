@@ -2,11 +2,12 @@ import { collection, onSnapshot, query } from '@firebase/firestore'
 import { db } from '@/firebase'
 
 export default {
+  namespaced: true,
   state: {
     items: []
   },
   actions: {
-    fetchCategory: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'categories', id }),
+    fetchCategory: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'categories', id }, { root: true }),
     fetchAllCategories ({ commit }) {
       console.log('Fetching all categories')
       return new Promise((resolve, reject) => {
@@ -16,7 +17,7 @@ export default {
             next: (snap) => {
               const categories = snap.docs.map(doc => {
                 const item = { id: doc.id, ...doc.data() }
-                commit('setItem', { resource: 'categories', item })
+                commit('setItem', { resource: 'categories', item }, { root: true })
                 return item
               })
               resolve(categories)

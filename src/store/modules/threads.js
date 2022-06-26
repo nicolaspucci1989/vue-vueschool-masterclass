@@ -3,18 +3,19 @@ import { arrayUnion, collection, doc, getDoc, serverTimestamp, writeBatch } from
 import { db } from '@/firebase'
 
 export default {
+  namespaced: true,
   state: {
     items: []
   },
   getters: {
-    thread: state => {
+    thread: (state, getters, rootState) => {
       return (id) => {
         const thread = findById(state.items, id)
         if (!thread) return {}
         return {
           ...thread,
           get author () {
-            return findById(state.users, thread.userId)
+            return findById(rootState.users.items, thread.userId)
           },
           get repliesCount () {
             return thread.posts.length - 1
@@ -43,10 +44,10 @@ export default {
       await batch.commit()
       const newThread = await getDoc(threadRef)
 
-      commit('setItem', { resource: 'threads', item: { ...newThread.data(), id: newThread.id } })
-      commit('appendThreadToUser', { parentId: userId, childId: threadRef.id })
-      commit('appendThreadToForum', { parentId: forumId, childId: threadRef.id })
-      await dispatch('createPost', { thread, threadId: threadRef.id, text })
+      commit('setItem', { resource: 'threads', item: { ...newThread.data(), id: newThread.id } }, { root: true })
+      commit('users/appendThreadToUser', { parentId: userId, childId: threadRef.id }, { root: true })
+      commit('forums/appendThreadToForum', { parentId: forumId, childId: threadRef.id }, { root: true })
+      await dispatch('posts/createPost', { thread, threadId: threadRef.id, text }, { root: true })
       return findById(state.items, threadRef.id)
     },
     async updateThread ({ commit, state }, { title, text, id }) {
@@ -65,12 +66,12 @@ export default {
       newThread = await getDoc(threadRef)
       newPost = await getDoc(postRef)
 
-      commit('setItem', { resource: 'threads', item: newThread })
-      commit('setItem', { resource: 'posts', item: newPost })
+      commit('setItem', { resource: 'threads', item: newThread }, { root: true })
+      commit('setItem', { resource: 'posts', item: newPost }, { root: true })
       return docToResource(newThread)
     },
-    fetchThread: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'threads', id }),
-    fetchThreads: ({ dispatch }, { ids }) => dispatch('fetchItems', { ids, resource: 'threads' })
+    fetchThread: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'threads', id }, { root: true }),
+    fetchThreads: ({ dispatch }, { ids }) => dispatch('fetchItems', { ids, resource: 'threads' }, { root: true })
   },
   mutations: {
     appendPostToThread: makeAppendParentToChildMutation({ parent: 'threads', child: 'posts' }),
