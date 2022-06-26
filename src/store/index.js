@@ -13,7 +13,6 @@ export default createStore({
   state: {
     unsubscribes: [],
     categories: [],
-    posts: [],
     users: []
   },
   getters,

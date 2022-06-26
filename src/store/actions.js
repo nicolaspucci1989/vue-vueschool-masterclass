@@ -66,13 +66,11 @@ export default {
    * Fetch Single Resource
    **/
   fetchCategory: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'categories', id }),
-  fetchPost: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'posts', id }),
   fetchUser: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'users', id }),
   /**
    * Fetch Multiple Resources
    **/
   fetchCategories: ({ dispatch }, { ids }) => dispatch('fetchItems', { ids, resource: 'categories' }),
-  fetchPosts: ({ dispatch }, { ids }) => dispatch('fetchItems', { ids, resource: 'posts' }),
   fetchUsers: ({ dispatch }, { ids }) => dispatch('fetchItems', { ids, resource: 'users' }),
   fetchAllCategories ({ commit }) {
     console.log('Fetching all categories')
