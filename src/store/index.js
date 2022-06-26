@@ -14,8 +14,7 @@ export default createStore({
     threads
   },
   state: {
-    unsubscribes: [],
-    categories: []
+    unsubscribes: []
   },
   actions,
   mutations

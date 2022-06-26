@@ -49,33 +49,10 @@ export default {
   /**
    * Fetch Single Resource
    **/
-  fetchCategory: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'categories', id }),
   /**
    * Fetch Multiple Resources
    **/
   fetchCategories: ({ dispatch }, { ids }) => dispatch('fetchItems', { ids, resource: 'categories' }),
-  fetchAllCategories ({ commit }) {
-    console.log('Fetching all categories')
-    return new Promise((resolve, reject) => {
-      onSnapshot(
-        query(collection(db, 'categories')),
-        {
-          next: (snap) => {
-            const categories = snap.docs.map(doc => {
-              const item = { id: doc.id, ...doc.data() }
-              commit('setItem', { resource: 'categories', item })
-              return item
-            })
-            resolve(categories)
-          },
-          error: (error) => {
-            console.log('error ', error)
-            reject(error)
-          }
-        }
-      )
-    })
-  },
   fetchItem: ({ commit }, { id, resource, handleUnsubscribe = null }) => {
     console.log('Fetching ', resource, ':', id)
     return new Promise((resolve, reject) => {
