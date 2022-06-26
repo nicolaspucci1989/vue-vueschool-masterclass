@@ -21,18 +21,19 @@ export default {
   },
   computed: {
     category () {
-      return this.$store.state.categories.find(category => category.id === this.id) || {}
+      return this.$store.state.categories.items.find(category => category.id === this.id) || {}
     }
   },
   methods: {
-    ...mapActions(['fetchCategory', 'fetchForums']),
+    ...mapActions('categories', ['fetchCategory']),
+    ...mapActions('forums', ['fetchForums']),
     getForumsFromCategory (category) {
-      return this.$store.state.forums.filter(forum => forum.categoryId === category.id)
+      return this.$store.state.forums.items.filter(forum => forum.categoryId === category.id)
     }
   },
   async created () {
-    const category = this.fetchCategory({ id: this.id })
-    this.fetchForums({ ids: category.forums })
+    const category = await this.fetchCategory({ id: this.id })
+    await this.fetchForums({ ids: category.forums })
     this.asyncDataStatus_fetched()
   }
 }

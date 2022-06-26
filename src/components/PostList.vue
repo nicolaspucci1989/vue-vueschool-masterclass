@@ -51,6 +51,7 @@
 
 import PostEditor from '@/components/PostEditor'
 import { mapActions } from 'vuex'
+import { findById } from '@/helpers'
 
 export default {
   name: 'PostList',
@@ -68,13 +69,13 @@ export default {
   },
   computed: {
     users () {
-      return this.$store.state.users
+      return this.$store.state.users.items
     }
   },
   methods: {
-    ...mapActions(['updatePost']),
+    ...mapActions('posts', ['updatePost']),
     userById (userId) {
-      return this.$store.getters.user(userId)
+      return findById(this.users, userId) || {}
     },
     toggleEditMode (id) {
       this.editing = id === this.editing ? null : id
