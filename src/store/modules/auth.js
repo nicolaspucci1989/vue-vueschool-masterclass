@@ -6,7 +6,7 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup, signOut
 } from '@firebase/auth'
-import { collection, doc, getDoc, getDocs, query, where } from '@firebase/firestore'
+import { collection, doc, getDoc, getDocs, query, where, orderBy, limit, startAfter } from '@firebase/firestore'
 
 export default {
   namespaced: true,
@@ -81,9 +81,18 @@ export default {
       { root: true })
       commit('setAuthId', userId)
     },
-    async fetchAuthUserPosts ({ commit, state }) {
+    async fetchAuthUserPosts ({ commit, state }, { startAfterPost }) {
       const postsRef = collection(db, 'posts')
-      const q = query(postsRef, where('userId', '==', state.authId))
+      const queryConstrains = [
+        where('userId', '==', state.authId),
+        orderBy('publishedAt', 'desc'),
+        limit(2)
+      ]
+      if (startAfterPost) {
+        const latestDoc = await getDoc(doc(db, 'posts', startAfterPost.id))
+        queryConstrains.push(startAfter(latestDoc))
+      }
+      const q = query(postsRef, ...queryConstrains)
       const posts = await getDocs(q)
       posts.forEach(item => {
         commit('setItem', { resource: 'posts', item }, { root: true })
