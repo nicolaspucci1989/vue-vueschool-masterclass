@@ -14,7 +14,7 @@
 
         <div class="profile-header">
                   <span class="text-lead">
-                      {{user.username}} recent activity
+                      {{ user.username }} recent activity
                   </span>
           <a href="#">See only started threads?</a>
         </div>
@@ -22,6 +22,10 @@
         <hr>
 
         <post-list :posts="user.posts"/>
+        <AppInfiniteScroll
+          @load="fetchUserPosts"
+          :done="user.posts.length === user.postsCount"
+        />
       </div>
     </div>
   </div>
@@ -33,10 +37,16 @@ import { mapGetters } from 'vuex'
 import UserProfileCard from '@/components/UserProfileCard'
 import UserProfileCardEditor from '@/components/UserProfileCardEditor'
 import asyncDataStatus from '@/mixins/asyncDataStatus'
+import AppInfiniteScroll from '@/components/AppInfiniteScroll'
 
 export default {
   name: 'ProfileShow',
-  components: { UserProfileCardEditor, UserProfileCard, PostList },
+  components: {
+    AppInfiniteScroll,
+    UserProfileCardEditor,
+    UserProfileCard,
+    PostList
+  },
   mixins: [asyncDataStatus],
   props: {
     edit: {
@@ -51,8 +61,13 @@ export default {
       return this.user.posts[this.user.posts.length - 1]
     }
   },
+  methods: {
+    fetchUserPosts () {
+      return this.$store.dispatch('auth/fetchAuthUserPosts', { startAfterPost: this.lastPostFetched })
+    }
+  },
   async created () {
-    await this.$store.dispatch('auth/fetchAuthUserPosts', { startAfterPost: this.lastPostFetched })
+    await this.fetchUserPosts()
     this.asyncDataStatus_fetched()
   }
 }
