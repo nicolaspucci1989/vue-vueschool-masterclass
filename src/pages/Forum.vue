@@ -20,9 +20,8 @@
       <thread-list :threads="threads"/>
       <v-pagination
         v-model="page"
-        :pages="perPage"
+        :pages="totalPages"
         active-color="#57AD8D"
-        @update:modelValue="updateHandler"
       />
     </div>
   </div>
@@ -76,14 +75,22 @@ export default {
   async created () {
     const forum = await this.fetchForum({ id: this.id })
     if (forum.threads) {
-      const threads = await this.fetchThreadsByPage({ ids: forum.threads, page: this.page, perPage: this.perPage })
+      const threads = await this.fetchThreadsByPage({
+        ids: forum.threads,
+        page: this.page,
+        perPage: this.perPage
+      })
       await this.fetchUsers({ ids: threads.map(thread => thread.userId) })
     }
     this.asyncDataStatus_fetched()
   },
   watch: {
     async page (page) {
-      const threads = this.fetchThreadsByPage({ ids: this.forum.threads, page: this.page, perPage: this.perPage })
+      const threads = await this.fetchThreadsByPage({
+        ids: this.forum.threads,
+        page: this.page,
+        perPage: this.perPage
+      })
       await this.fetchUsers({ ids: threads.map(thread => thread.userId) })
     }
   }
