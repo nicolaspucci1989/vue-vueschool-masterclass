@@ -5,7 +5,7 @@ import {
 import { db } from '@/firebase'
 
 export default {
-  fetchItem: ({ commit }, { id, resource, handleUnsubscribe = null }) => {
+  fetchItem: ({ commit }, { id, resource, handleUnsubscribe = null, once = false }) => {
     console.log('Fetching ', resource, ':', id)
     return new Promise((resolve, reject) => {
       const unsubscribe = onSnapshot(
@@ -13,6 +13,10 @@ export default {
         {
           next: (snap) => {
             console.log('snapshot', snap)
+            if (once) {
+              unsubscribe()
+              console.log('unsubscribing for once option', snap)
+            }
             if (snap.exists()) {
               const item = { ...snap.data(), id: snap.id }
               commit('setItem', { resource, id, item })

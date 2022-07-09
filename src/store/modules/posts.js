@@ -9,6 +9,7 @@ import {
   writeBatch
 } from '@firebase/firestore'
 import { db } from '@/firebase'
+import { makeFetchItemsAction } from '@/helpers'
 
 export default {
   namespaced: true,
@@ -35,8 +36,8 @@ export default {
       commit('threads/appendPostToThread', { childId: newPost.id, parentId: post.threadId }, { root: true })
       commit('threads/appendContributorToThread', { childId: rootState.auth.authId, parentId: post.threadId }, { root: true })
     },
-    fetchPost: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'posts', id }, { root: true }),
-    fetchPosts: ({ dispatch }, { ids }) => dispatch('fetchItems', { ids, resource: 'posts' }, { root: true }),
+    fetchPost: makeFetchItemsAction({ resource: 'posts' }),
+    fetchPosts: makeFetchItemsAction({ resource: 'posts' }),
     async updatePost ({ commit, state, rootState }, { text, id }) {
       const post = {
         text,

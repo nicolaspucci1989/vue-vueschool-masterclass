@@ -1,4 +1,10 @@
-import { docToResource, findById, makeAppendParentToChildMutation } from '@/helpers'
+import {
+  docToResource,
+  findById,
+  makeAppendParentToChildMutation,
+  makeFetchItemAction,
+  makeFetchItemsAction
+} from '@/helpers'
 import { doc, getDoc, serverTimestamp, setDoc, updateDoc } from '@firebase/firestore'
 import { db } from '@/firebase'
 
@@ -8,7 +14,8 @@ export default {
     items: []
   },
   actions: {
-    fetchUser: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'users', id }, { root: true }),
+    fetchUser: makeFetchItemAction({ resource: 'users' }),
+    fetchUsers: makeFetchItemsAction({ resource: 'users' }),
     async updateUser ({ commit }, user) {
       const updates = {
         avatar: user.avatar || null,
@@ -23,7 +30,6 @@ export default {
       await updateDoc(userRef, updates)
       commit('setItem', { resource: 'users', item: user }, { root: true })
     },
-    fetchUsers: ({ dispatch }, { ids }) => dispatch('fetchItems', { ids, resource: 'users' }, { root: true }),
     async createUser ({ commit }, { id, email, name, username, avatar = null }) {
       const registeredAt = serverTimestamp()
       const usernameLower = username.toLowerCase()
