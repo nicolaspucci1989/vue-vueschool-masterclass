@@ -4,10 +4,11 @@ import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithEmailAndPassword,
-  signInWithPopup, signOut
+  signInWithPopup,
+  signOut
 } from '@firebase/auth'
-import { ref, uploadBytes, getDownloadURL } from '@firebase/storage'
-import { collection, doc, getDoc, getDocs, query, where, orderBy, limit, startAfter } from '@firebase/firestore'
+import { getDownloadURL, ref, uploadBytes } from '@firebase/storage'
+import { collection, doc, getDoc, getDocs, limit, orderBy, query, startAfter, where } from '@firebase/firestore'
 
 export default {
   namespaced: true,
@@ -42,12 +43,15 @@ export default {
     },
     async registerUserWithEmailAndPassword ({ dispatch }, { avatar = null, email, name, username, password }) {
       const result = await createUserWithEmailAndPassword(auth, email, password)
-      if (avatar) {
-        const fileRef = ref(storage, `uploads/${result.user.uid}/images/${Date.now()}-${avatar.name}`)
-        await uploadBytes(fileRef, avatar)
-        avatar = await getDownloadURL(fileRef)
-      }
+      avatar = await dispatch('uploadAvatar', { authId: result.user.uid, file: avatar })
       await dispatch('users/createUser', { id: result.user.uid, email, name, username, avatar }, { root: true })
+    },
+    async uploadAvatar ({ state }, { authId, file }) {
+      if (!file) return null
+      authId = authId || state.authId
+      const fileRef = ref(storage, `uploads/${authId}/images/${Date.now()}-${file.name}`)
+      await uploadBytes(fileRef, file)
+      return await getDownloadURL(fileRef)
     },
     signInWithEmailAndPassword (context, { email, password }) {
       return signInWithEmailAndPassword(auth, email, password)
