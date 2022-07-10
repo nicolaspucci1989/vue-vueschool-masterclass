@@ -1,12 +1,15 @@
 import { onAuthStateChanged } from 'firebase/auth'
-import { auth, db } from '@/firebase'
+import { auth, db, storage } from '@/firebase'
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithEmailAndPassword,
-  signInWithPopup, signOut
+  signInWithPopup,
+  signOut
 } from '@firebase/auth'
-import { collection, doc, getDoc, getDocs, query, where, orderBy, limit, startAfter } from '@firebase/firestore'
+import { getDownloadURL, ref, uploadBytes } from '@firebase/storage'
+import { collection, doc, getDoc, getDocs, limit, orderBy, query, startAfter, where } from '@firebase/firestore'
+import useNotifications from '@/composables/useNotifications'
 
 export default {
   namespaced: true,
@@ -41,7 +44,22 @@ export default {
     },
     async registerUserWithEmailAndPassword ({ dispatch }, { avatar = null, email, name, username, password }) {
       const result = await createUserWithEmailAndPassword(auth, email, password)
+      avatar = await dispatch('uploadAvatar', { authId: result.user.uid, file: avatar })
       await dispatch('users/createUser', { id: result.user.uid, email, name, username, avatar }, { root: true })
+    },
+    async uploadAvatar ({ state }, { authId, file, filename }) {
+      if (!file) return null
+      authId = authId || state.authId
+      filename = filename || file.name
+
+      try {
+        const fileRef = ref(storage, `uploads/${authId}/images/${Date.now()}-${filename}`)
+        const snapshot = await uploadBytes(fileRef, file)
+        return await getDownloadURL(snapshot.ref)
+      } catch (error) {
+        const { addNotification } = useNotifications()
+        addNotification({ message: 'Error uploading avatar', timeout: 5000, type: 'error' })
+      }
     },
     signInWithEmailAndPassword (context, { email, password }) {
       return signInWithEmailAndPassword(auth, email, password)

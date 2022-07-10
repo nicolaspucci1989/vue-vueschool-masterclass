@@ -38,3 +38,8 @@ export const makeFetchItemAction = ({ resource }) => {
 export const makeFetchItemsAction = ({ resource }) => {
   return ({ dispatch }, payload) => dispatch('fetchItems', { resource, ...payload }, { root: true })
 }
+
+export const arrayRandom = (array) => {
+  const randomIndex = Math.floor(Math.random() * array.length)
+  return array[randomIndex]
+}

@@ -26,8 +26,20 @@
         </div>
 
         <div class="form-group">
-          <label for="avatar">Avatar</label>
-          <input v-model="form.avatar" id="avatar" type="text" class="form-input">
+          <label for="avatar">
+            Avatar
+            <div v-if="avatarPreview">
+              <img :src="avatarPreview" class="avatar-xlarge" alt="avatar">
+            </div>
+          </label>
+          <input
+            v-show="!avatarPreview"
+            id="avatar"
+            type="file"
+            class="form-input"
+            @change="handleImageUpload"
+            accept="image/*"
+          >
         </div>
 
         <div class="form-actions">
@@ -47,6 +59,7 @@ export default {
   name: 'RegisterPage',
   data () {
     return {
+      avatarPreview: null,
       form: {
         name: '',
         username: '',
@@ -64,6 +77,14 @@ export default {
     async registerWithGoogle () {
       await this.$store.dispatch('auth/signInWithGoogle')
       this.$router.push('/')
+    },
+    handleImageUpload (e) {
+      this.form.avatar = e.target.files[0]
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        this.avatarPreview = event.target.result
+      }
+      reader.readAsDataURL(this.form.avatar)
     }
   },
   async created () {

@@ -1,3 +1,18 @@
+<script>
+export default {
+  props: {
+    color: {
+      type: String,
+      default: '#263959'
+    }
+  },
+  data () {
+    return {
+      spinnerColor: this.color
+    }
+  }
+}
+</script>
 <template>
   <div class="sk-cube-grid">
     <div class="sk-cube sk-cube1"></div>
@@ -22,7 +37,7 @@
 .sk-cube-grid .sk-cube {
   width: 33%;
   height: 33%;
-  background-color: #263959;
+  background-color: v-bind(spinnerColor);
   float: left;
   -webkit-animation: sk-cubeGridScaleDelay 1.3s infinite ease-in-out;
           animation: sk-cubeGridScaleDelay 1.3s infinite ease-in-out;

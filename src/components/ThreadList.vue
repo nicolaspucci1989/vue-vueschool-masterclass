@@ -24,7 +24,7 @@
             {{thread.repliesCount}} replies
           </p>
 
-          <img class="avatar-medium" :src="userById(thread.userId).avatar" alt="">
+          <AppAvatarImage class="avatar-medium" :src="userById(thread.userId).avatar" alt="user avatar"/>
 
           <div>
             <p class="text-xsmall">
