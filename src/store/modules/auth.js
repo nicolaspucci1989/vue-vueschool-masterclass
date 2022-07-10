@@ -47,12 +47,13 @@ export default {
       avatar = await dispatch('uploadAvatar', { authId: result.user.uid, file: avatar })
       await dispatch('users/createUser', { id: result.user.uid, email, name, username, avatar }, { root: true })
     },
-    async uploadAvatar ({ state }, { authId, file }) {
+    async uploadAvatar ({ state }, { authId, file, filename }) {
       if (!file) return null
       authId = authId || state.authId
+      filename = filename || file.name
 
       try {
-        const fileRef = ref(storage, `uploads/${authId}/images/${Date.now()}-${file.name}`)
+        const fileRef = ref(storage, `uploads/${authId}/images/${Date.now()}-${filename}`)
         const snapshot = await uploadBytes(fileRef, file)
         return await getDownloadURL(snapshot.ref)
       } catch (error) {
