@@ -1,11 +1,12 @@
 import { onAuthStateChanged } from 'firebase/auth'
-import { auth, db } from '@/firebase'
+import { auth, db, storage } from '@/firebase'
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithEmailAndPassword,
   signInWithPopup, signOut
 } from '@firebase/auth'
+import { ref, uploadBytes, getDownloadURL } from '@firebase/storage'
 import { collection, doc, getDoc, getDocs, query, where, orderBy, limit, startAfter } from '@firebase/firestore'
 
 export default {
@@ -41,6 +42,11 @@ export default {
     },
     async registerUserWithEmailAndPassword ({ dispatch }, { avatar = null, email, name, username, password }) {
       const result = await createUserWithEmailAndPassword(auth, email, password)
+      if (avatar) {
+        const fileRef = ref(storage, `uploads/${result.user.uid}/images/${Date.now()}-${avatar.name}`)
+        await uploadBytes(fileRef, avatar)
+        avatar = await getDownloadURL(fileRef)
+      }
       await dispatch('users/createUser', { id: result.user.uid, email, name, username, avatar }, { root: true })
     },
     signInWithEmailAndPassword (context, { email, password }) {
