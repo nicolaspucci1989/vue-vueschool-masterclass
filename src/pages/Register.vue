@@ -15,13 +15,17 @@
 
         <div class="form-group">
           <label for="username">Username</label>
-          <VeeField name="username" v-model="form.username" id="username" type="text" class="form-input" rules="required"/>
+          <VeeField name="username" v-model="form.username" id="username" type="text" class="form-input"
+                    rules="required|unique:users,username"
+          />
           <VeeErrorMessage name="username" class="form-error"/>
         </div>
 
         <div class="form-group">
           <label for="email">Email</label>
-          <VeeField name="email" v-model="form.email" id="email" type="email" class="form-input" rules="required|email"/>
+          <VeeField name="email" v-model="form.email" id="email" type="email" class="form-input"
+                    rules="required|email|unique:users,email"
+          />
           <VeeErrorMessage name="email" class="form-error"/>
         </div>
 
