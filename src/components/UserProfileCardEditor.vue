@@ -4,11 +4,11 @@
 
       <p class="text-center avatar-edit">
         <label for="avatar">
-          <img
+          <AppAvatarImage
             :src="activeUser.avatar"
             :alt="`${user.name} profile picture`"
             class="avatar-xlarge img-update"
-          >
+          />
           <span class="avatar-upload-overlay">
             <AppSpinner color="white" v-if="uploadingImage"/>
             <fa-icon v-else icon="camera" size="3x" :style="{color: 'white', opacity: '.8'}"/>
