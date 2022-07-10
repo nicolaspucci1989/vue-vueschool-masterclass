@@ -30,6 +30,8 @@ import PostEditor from '@/components/PostEditor'
 import AppDate from '@/components/AppDate'
 import { mapActions, mapGetters } from 'vuex'
 import asyncDataStatus from '@/mixins/asyncDataStatus'
+import useNotifications from '@/composables/useNotifications'
+import { difference } from 'lodash'
 
 export default {
   name: 'ThreadShow',
@@ -37,6 +39,10 @@ export default {
     AppDate,
     PostEditor,
     PostList
+  },
+  setup () {
+    const { addNotification } = useNotifications()
+    return { addNotification }
   },
   mixins: [asyncDataStatus],
   props: {
@@ -70,13 +76,34 @@ export default {
         threadId: this.id
       }
       this.createPost(post)
+    },
+    async fetchPostsWithUsers (ids) {
+      const posts = await this.fetchPosts({
+        ids,
+        onSnapshot: ({ isLocal, previousItem }) => {
+          if (!this.asyncDataStatus_ready || isLocal || (previousItem?.edited && !previousItem?.edited?.at)) return
+          this.addNotification({ message: 'Thread recently updated', timeout: 5000 })
+        }
+      })
+      const users = posts.map(post => post.userId).concat(this.thread.userId)
+      await this.fetchUsers({ ids: users })
     }
   },
   async created () {
-    const thread = await this.fetchThread({ id: this.id })
-    const posts = await this.fetchPosts({ ids: thread.posts })
-    const users = posts.map(post => post.userId).concat(thread.userId)
-    await this.fetchUsers({ ids: users })
+    const thread = await this.fetchThread({
+      id: this.id,
+      onSnapshot: ({ isLocal, item, previousItem }) => {
+        if (!this.asyncDataStatus_ready || isLocal) return
+        const newPosts = difference(item.posts, previousItem.posts)
+        const hasNewPosts = newPosts.length > 0
+        if (hasNewPosts) {
+          this.fetchPostsWithUsers(newPosts)
+        } else {
+          this.addNotification({ message: 'Thread recently updated', timeout: 5000 })
+        }
+      }
+    })
+    await this.fetchPostsWithUsers(thread.posts)
     this.asyncDataStatus_fetched()
   }
 }

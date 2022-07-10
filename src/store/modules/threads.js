@@ -1,6 +1,13 @@
-import { docToResource, findById, makeAppendParentToChildMutation } from '@/helpers'
+import {
+  docToResource,
+  findById,
+  makeAppendParentToChildMutation,
+  makeFetchItemAction,
+  makeFetchItemsAction
+} from '@/helpers'
 import { arrayUnion, collection, doc, getDoc, serverTimestamp, writeBatch } from '@firebase/firestore'
 import { db } from '@/firebase'
+import { chunk } from 'lodash'
 
 export default {
   namespaced: true,
@@ -70,11 +77,20 @@ export default {
       commit('setItem', { resource: 'posts', item: newPost }, { root: true })
       return docToResource(newThread)
     },
-    fetchThread: ({ dispatch }, { id }) => dispatch('fetchItem', { resource: 'threads', id }, { root: true }),
-    fetchThreads: ({ dispatch }, { ids }) => dispatch('fetchItems', { ids, resource: 'threads' }, { root: true })
+    fetchThread: makeFetchItemAction({ resource: 'threads' }),
+    fetchThreads: makeFetchItemsAction({ resource: 'threads' }),
+    fetchThreadsByPage: ({ dispatch, commit }, { ids, page, perPage = 10 }) => {
+      commit('clearThreads')
+      const chunks = chunk(ids, perPage)
+      const limitedIds = chunks[page - 1]
+      return dispatch('fetchThreads', { ids: limitedIds })
+    }
   },
   mutations: {
     appendPostToThread: makeAppendParentToChildMutation({ parent: 'threads', child: 'posts' }),
-    appendContributorToThread: makeAppendParentToChildMutation({ parent: 'threads', child: 'contributors' })
+    appendContributorToThread: makeAppendParentToChildMutation({ parent: 'threads', child: 'contributors' }),
+    clearThreads: (state) => {
+      state.items = []
+    }
   }
 }
