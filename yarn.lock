@@ -1851,6 +1851,11 @@
   dependencies:
     "@types/node" "*"
 
+"@vee-validate/rules@^4.5.11":
+  version "4.5.11"
+  resolved "https://registry.yarnpkg.com/@vee-validate/rules/-/rules-4.5.11.tgz#0d300459c612938aa74ae522b7670a40317e8571"
+  integrity sha512-aGwxjr/5/w8LFVObPB6UrqYt0oRlHHFw8/nxZHowY4LP62GWlAi+mAp1fb15Paav/c9rgV4iiqsNYarS1zpNQw==
+
 "@vue/babel-helper-vue-jsx-merge-props@^1.2.1":
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/@vue/babel-helper-vue-jsx-merge-props/-/babel-helper-vue-jsx-merge-props-1.2.1.tgz#31624a7a505fb14da1d58023725a4c5f270e6a81"

@@ -9,13 +9,13 @@
 
         <div class="form-group">
           <label for="name">Full Name</label>
-          <VeeField name="name" v-model="form.name" id="name" type="text" class="form-input" :rules="required"/>
+          <VeeField name="name" v-model="form.name" id="name" type="text" class="form-input" rules="required"/>
           <VeeErrorMessage name="name" class="form-error"/>
         </div>
 
         <div class="form-group">
           <label for="username">Username</label>
-          <VeeField name="username" v-model="form.username" id="username" type="text" class="form-input" :rules="required"/>
+          <VeeField name="username" v-model="form.username" id="username" type="text" class="form-input" rules="required"/>
           <VeeErrorMessage name="username" class="form-error"/>
         </div>
 
@@ -59,12 +59,8 @@
   </div>
 </template>
 <script>
-import { Form, Field, ErrorMessage } from 'vee-validate'
 export default {
   name: 'RegisterPage',
-  components: {
-    VeeForm: Form, VeeField: Field, VeeErrorMessage: ErrorMessage
-  },
   data () {
     return {
       avatarPreview: null,
@@ -78,10 +74,6 @@ export default {
     }
   },
   methods: {
-    required (value) {
-      if (value && value.trim()) return true
-      return 'This is required'
-    },
     async register () {
       await this.$store.dispatch('auth/registerUserWithEmailAndPassword', this.form)
       this.$router.push('/')
