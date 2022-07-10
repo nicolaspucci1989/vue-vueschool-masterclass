@@ -28,7 +28,7 @@
         <div class="form-group">
           <label for="password">Password</label>
           <VeeField name="password" v-model="form.password" id="password" type="password" class="form-input"
-            rules="required|min:8"
+            rules="required|min:8" label="Password"
           />
           <VeeErrorMessage name="password" class="form-error"/>
         </div>
