@@ -1,6 +1,6 @@
 <template>
   <div class="profile-card">
-    <VeeForm @submit.prevent="save">
+    <VeeForm @submit="save">
 
       <p class="text-center avatar-edit">
         <label for="avatar">
@@ -32,7 +32,10 @@
 
       <AppFormField v-model="activeUser.website" name="website" label="Website" rules="url"/>
       <AppFormField v-model="activeUser.email" name="email" label="Email" :rules="`required|email|unique:users,email,${user.email}`"/>
-      <AppFormField v-model="activeUser.location" name="location" label="Location"/>
+      <AppFormField v-model="activeUser.location" name="location" label="Location" list="locations" @mouseenter="loadLocationOptions"/>
+      <datalist id="locations">
+        <option v-for="location in locationOptions" :value="location.name.common" :key="location.name.common"/>
+      </datalist>
 
       <div class="btn-group space-between">
         <button :disabled="processing" class="btn-ghost" @click.prevent="cancel">Cancel</button>
@@ -64,13 +67,19 @@ export default {
   },
   data () {
     return {
-      processing: false,
       uploadingImage: false,
-      activeUser: { ...this.user }
+      activeUser: { ...this.user },
+      processing: false,
+      locationOptions: []
     }
   },
   methods: {
     ...mapActions('auth', ['uploadAvatar']),
+    async loadLocationOptions () {
+      if (this.locationOptions.length) return
+      const res = await fetch('https://restcountries.com/v3/all')
+      this.locationOptions = await res.json()
+    },
     async handleAvatarUpload (e) {
       this.uploadingImage = true
       const file = e.target.files[0]
