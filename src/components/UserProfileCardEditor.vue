@@ -55,8 +55,11 @@
         <input autocomplete="off" v-model="activeUser.location" class="form-input" id="user_location"></div>
 
       <div class="btn-group space-between">
-        <button class="btn-ghost" @click.prevent="cancel">Cancel</button>
-        <button type="submit" class="btn-blue">Save</button>
+        <button :disabled="processing" class="btn-ghost" @click.prevent="cancel">Cancel</button>
+        <button :disabled="processing" type="submit" class="btn-blue">
+          <Appspinner :style="{ paddingLeft: '6px', paddingRight: '6px' }" v-if="processing" size="sm"/>
+          Save
+        </button>
       </div>
     </form>
   </div>
@@ -81,6 +84,7 @@ export default {
   },
   data () {
     return {
+      processing: false,
       uploadingImage: false,
       activeUser: { ...this.user }
     }
@@ -104,8 +108,10 @@ export default {
     },
     async save () {
       console.log('save')
+      this.processing = true
       await this.handleRandomAvatarUpload()
       this.$store.dispatch('users/updateUser', { ...this.activeUser })
+      this.processing = false
       this.$router.push({ name: 'Profile' })
     },
     cancel () {
