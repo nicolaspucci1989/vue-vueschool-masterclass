@@ -1,6 +1,6 @@
 <template>
   <div class="profile-card">
-    <form @submit.prevent="save">
+    <VeeForm @submit="save">
 
       <p class="text-center avatar-edit">
         <label for="avatar">
@@ -19,19 +19,9 @@
 
       <UserProfileCardEditorRandomAvatar @hit="activeUser.avatar = $event"/>
 
-      <div class="form-group">
-        <input type="text" v-model="activeUser.username" placeholder="Username" class="form-input text-lead text-bold">
-      </div>
-
-      <div class="form-group">
-        <input type="text" v-model="activeUser.name" placeholder="Full Name" class="form-input text-lead">
-      </div>
-
-      <div class="form-group">
-        <label for="user_bio">Bio</label>
-        <textarea class="form-input" v-model="activeUser.bio" id="user_bio"
-                  placeholder="Write a few words about yourself."></textarea>
-      </div>
+      <AppFormField v-model="activeUser.username" name="username" label="Username" :rules="`required|unique:users,username,${user.username}`"/>
+      <AppFormField v-model="activeUser.name" name="name" label="Name" rules="required"/>
+      <AppFormField v-model="activeUser.bio" name="text" as="textarea" label="Bio" cols="30" rows="10" placeholder="Write a few words about yourself."/>
 
       <div class="stats">
         <span>{{ user.postsCount }} posts</span>
@@ -40,19 +30,12 @@
 
       <hr>
 
-      <div class="form-group">
-        <label class="form-label" for="user_website">Website</label>
-        <input autocomplete="off" v-model="activeUser.website" class="form-input" id="user_website">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="user_email">Email</label>
-        <input autocomplete="off" v-model="activeUser.email" class="form-input" id="user_email">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="user_location">Location</label>
-        <input autocomplete="off" v-model="activeUser.location" class="form-input" id="user_location"></div>
+      <AppFormField v-model="activeUser.website" name="website" label="Website" rules="url"/>
+      <AppFormField v-model="activeUser.email" name="email" label="Email" :rules="`required|email|unique:users,email,${user.email}`"/>
+      <AppFormField v-model="activeUser.location" name="location" label="Location" list="locations" @mouseenter="loadLocationOptions"/>
+      <datalist id="locations">
+        <option v-for="location in locationOptions" :value="location.name.common" :key="location.name.common"/>
+      </datalist>
 
       <div class="btn-group space-between">
         <button :disabled="processing" class="btn-ghost" @click.prevent="cancel">Cancel</button>
@@ -61,7 +44,7 @@
           Save
         </button>
       </div>
-    </form>
+    </VeeForm>
   </div>
 </template>
 
@@ -84,13 +67,19 @@ export default {
   },
   data () {
     return {
-      processing: false,
       uploadingImage: false,
-      activeUser: { ...this.user }
+      activeUser: { ...this.user },
+      processing: false,
+      locationOptions: []
     }
   },
   methods: {
     ...mapActions('auth', ['uploadAvatar']),
+    async loadLocationOptions () {
+      if (this.locationOptions.length) return
+      const res = await fetch('https://restcountries.com/v3/all')
+      this.locationOptions = await res.json()
+    },
     async handleAvatarUpload (e) {
       this.uploadingImage = true
       const file = e.target.files[0]

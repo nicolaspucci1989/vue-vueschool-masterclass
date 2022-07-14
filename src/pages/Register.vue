@@ -2,28 +2,15 @@
   <div class="flex-grid justify-center">
     <div class="col-2">
 
-      <form @submit.prevent="register" action="" class="card card-form">
+      <VeeForm
+        @submit="register"
+        class="card card-form">
         <h1 class="text-center">Register</h1>
 
-        <div class="form-group">
-          <label for="name">Full Name</label>
-          <input v-model="form.name" id="name" type="text" class="form-input">
-        </div>
-
-        <div class="form-group">
-          <label for="username">Username</label>
-          <input v-model="form.username" id="username" type="text" class="form-input">
-        </div>
-
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input v-model="form.email" id="email" type="email" class="form-input">
-        </div>
-
-        <div class="form-group">
-          <label for="password">Password</label>
-          <input v-model="form.password" id="password" type="password" class="form-input">
-        </div>
+        <AppFormField v-model="form.name" name="name" label="Name" rules="required"/>
+        <AppFormField v-model="form.username" name="username" label="Username" rules="required|unique:users,username"/>
+        <AppFormField v-model="form.email" name="email" label="Email" rules="required|email|unique:users,email"/>
+        <AppFormField v-model="form.password" name="password" label="Password" rules="required|min:8"/>
 
         <div class="form-group">
           <label for="avatar">
@@ -32,21 +19,22 @@
               <img :src="avatarPreview" class="avatar-xlarge" alt="avatar">
             </div>
           </label>
-          <input
+          <VeeField
+            name="avatar"
             v-show="!avatarPreview"
             id="avatar"
             type="file"
             class="form-input"
             @change="handleImageUpload"
             accept="image/*"
-          >
+         />
         </div>
 
         <div class="form-actions">
           <button type="submit" class="btn-blue btn-block">Register</button>
         </div>
 
-      </form>
+      </VeeForm>
       <div class="text-center push-top">
         <button @click="registerWithGoogle" class="btn-red btn-xsmall"><i class="fa fa-google fa-btn"></i>Sign up with Google</button>
       </div>
@@ -54,7 +42,6 @@
   </div>
 </template>
 <script>
-
 export default {
   name: 'RegisterPage',
   data () {
