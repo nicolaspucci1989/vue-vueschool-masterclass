@@ -60,7 +60,7 @@ export default {
         .map(thread => this.$store.getters['threads/thread'](thread.id))
     },
     threadCount () {
-      return this.forum.threads.length
+      return this.forum.threads?.length || 0
     },
     totalPages () {
       if (!this.threadCount) return 0
@@ -74,14 +74,8 @@ export default {
   },
   async created () {
     const forum = await this.fetchForum({ id: this.id })
-    if (forum.threads) {
-      const threads = await this.fetchThreadsByPage({
-        ids: forum.threads,
-        page: this.page,
-        perPage: this.perPage
-      })
-      await this.fetchUsers({ ids: threads.map(thread => thread.userId) })
-    }
+    const threads = await this.fetchThreadsByPage({ ids: forum.threads, page: this.page, perPage: this.perPage })
+    await this.fetchUsers({ ids: threads.map(thread => thread.userId) })
     this.asyncDataStatus_fetched()
   },
   watch: {

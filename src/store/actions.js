@@ -49,10 +49,15 @@ export default {
       }
     })
   },
-  fetchItems: ({ dispatch }, { ids, resource, onSnapshot = null }) =>
-    Promise.all(ids.map(id => dispatch('fetchItem', { id, resource, onSnapshot }))),
+  fetchItems: ({ dispatch }, { ids, resource, onSnapshot = null }) => {
+    ids = ids || []
+    return Promise.all(ids.map(id => dispatch('fetchItem', { id, resource, onSnapshot })))
+  },
   unsubscribeAllSnapshots ({ state, commit }) {
     state.unsubscribes.forEach(unsubscribe => unsubscribe())
     commit('clearUnsubscribes')
+  },
+  clearItems ({ commit }, { modules = [] }) {
+    commit('clearItems', { modules })
   }
 }

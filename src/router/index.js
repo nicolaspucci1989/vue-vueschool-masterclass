@@ -113,6 +113,11 @@ const router = createRouter({
     return scroll
   }
 })
+
+router.afterEach(async () => {
+  await store.dispatch('clearItems', { modules: ['categories', 'forums', 'posts', 'threads'] })
+})
+
 router.beforeEach(async (to) => {
   await store.dispatch('auth/initAuthentication')
   store.dispatch('unsubscribeAllSnapshots')
