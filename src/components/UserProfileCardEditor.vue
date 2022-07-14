@@ -99,7 +99,7 @@ export default {
       console.log('save')
       this.processing = true
       await this.handleRandomAvatarUpload()
-      this.$store.dispatch('users/updateUser', { ...this.activeUser })
+      this.$store.dispatch('users/updateUser', { ...this.activeUser, threads: this.activeUser.threadIds })
       this.processing = false
       this.$router.push({ name: 'Profile' })
     },

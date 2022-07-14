@@ -61,6 +61,9 @@ export default {
           get threads () {
             return rootState.threads.items.filter(thread => thread.userId === user.id)
           },
+          get threadIds () {
+            return user.threads
+          },
           get threadsCount () {
             return user.threads?.length || 0
           }
