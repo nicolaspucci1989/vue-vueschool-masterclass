@@ -28,6 +28,7 @@ export default {
             return thread.posts.length - 1
           },
           get contributorsCount () {
+            if (!thread.contributors) return 0
             return thread.contributors?.length ? thread.contributors.length : 0
           }
         }
@@ -54,7 +55,7 @@ export default {
       commit('setItem', { resource: 'threads', item: { ...newThread.data(), id: newThread.id } }, { root: true })
       commit('users/appendThreadToUser', { parentId: userId, childId: threadRef.id }, { root: true })
       commit('forums/appendThreadToForum', { parentId: forumId, childId: threadRef.id }, { root: true })
-      await dispatch('posts/createPost', { thread, threadId: threadRef.id, text }, { root: true })
+      await dispatch('posts/createPost', { thread, threadId: threadRef.id, text, firstInThread: true }, { root: true })
       return findById(state.items, threadRef.id)
     },
     async updateThread ({ commit, state, rootState }, { title, text, id }) {

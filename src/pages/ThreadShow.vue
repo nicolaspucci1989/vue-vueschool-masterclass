@@ -11,7 +11,11 @@
       <AppDate :timestamp="thread.publishedAt"/>
       .
       <span style="float:right; margin-top: 2px;" class="hide-mobile text-faded text-small">
-        {{ thread.repliesCount }} replies by {{ thread.contributorsCount }} contributors</span>
+        {{ thread.repliesCount }}
+        {{ thread.repliesCount > 1 ? 'replies' : 'reply' }}
+        by {{ thread.contributorsCount }}
+        {{ thread.contributors > 1 ? 'contributors' : 'contributor' }}
+      </span>
     </p>
     <post-list :posts="threadPosts"/>
     <post-editor v-if="authUser" @save="addPost"/>
