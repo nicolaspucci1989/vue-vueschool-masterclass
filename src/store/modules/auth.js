@@ -1,11 +1,13 @@
-import { onAuthStateChanged } from 'firebase/auth'
+import { onAuthStateChanged, updateEmail } from 'firebase/auth'
 import { auth, db, storage } from '@/firebase'
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithEmailAndPassword,
   signInWithPopup,
-  signOut
+  signOut,
+  EmailAuthProvider,
+  reauthenticateWithCredential
 } from '@firebase/auth'
 import { getDownloadURL, ref, uploadBytes } from '@firebase/storage'
 import { collection, doc, getDoc, getDocs, limit, orderBy, query, startAfter, where } from '@firebase/firestore'
@@ -24,6 +26,13 @@ export default {
     }
   },
   actions: {
+    updateEmail ({ state }, { email }) {
+      return updateEmail(auth.currentUser, email)
+    },
+    async reauthenticate ({ state }, { email, password }) {
+      const credential = EmailAuthProvider.credential(email, password)
+      await reauthenticateWithCredential(auth.currentUser, credential)
+    },
     initAuthentication ({ commit, state }) {
       return new Promise((resolve) => {
         if (state.authObserverUnsubscribe) state.authObserverUnsubscribe()

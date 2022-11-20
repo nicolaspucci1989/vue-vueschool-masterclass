@@ -19,9 +19,11 @@
 
       <UserProfileCardEditorRandomAvatar @hit="activeUser.avatar = $event"/>
 
-      <AppFormField v-model="activeUser.username" name="username" label="Username" :rules="`required|unique:users,username,${user.username}`"/>
+      <AppFormField v-model="activeUser.username" name="username" label="Username"
+                    :rules="`required|unique:users,username,${user.username}`" autocomplete="username"/>
       <AppFormField v-model="activeUser.name" name="name" label="Name" rules="required"/>
-      <AppFormField v-model="activeUser.bio" name="text" as="textarea" label="Bio" cols="30" rows="10" placeholder="Write a few words about yourself."/>
+      <AppFormField v-model="activeUser.bio" name="text" as="textarea" label="Bio" cols="30" rows="10"
+                    placeholder="Write a few words about yourself."/>
 
       <div class="stats">
         <span>{{ user.postsCount }} posts</span>
@@ -31,8 +33,10 @@
       <hr>
 
       <AppFormField v-model="activeUser.website" name="website" label="Website" rules="url"/>
-      <AppFormField v-model="activeUser.email" name="email" label="Email" :rules="`required|email|unique:users,email,${user.email}`"/>
-      <AppFormField v-model="activeUser.location" name="location" label="Location" list="locations" @mouseenter="loadLocationOptions"/>
+      <AppFormField v-model="activeUser.email" name="email" label="Email"
+                    :rules="`required|email|unique:users,email,${user.email}`"/>
+      <AppFormField v-model="activeUser.location" name="location" label="Location" list="locations"
+                    @mouseenter="loadLocationOptions"/>
       <datalist id="locations">
         <option v-for="location in locationOptions" :value="location.name.common" :key="location.name.common"/>
       </datalist>
@@ -40,24 +44,30 @@
       <div class="btn-group space-between">
         <button :disabled="processing" class="btn-ghost" @click.prevent="cancel">Cancel</button>
         <button :disabled="processing" type="submit" class="btn-blue">
-          <Appspinner :style="{ paddingLeft: '6px', paddingRight: '6px' }" v-if="processing" size="sm"/>
+          <AppSpinner :style="{ paddingLeft: '6px', paddingRight: '6px' }" v-if="processing" size="sm"/>
           Save
         </button>
       </div>
     </VeeForm>
+    <UserProfileCardEditorReauthenticate
+      v-model="needsReAuth"
+      @success="onReauthenticated"
+      @fail="onReauthenticatedFailed"
+    />
   </div>
 </template>
 
 <script>
 import { mapActions } from 'vuex'
-import AppSpinner from '@/components/AppSpinner'
 import UserProfileCardEditorRandomAvatar from '@/components/UserProfileCardEditorRandomAvatar'
+import UserProfileCardEditorReauthenticate from '@/components/UserProfileCardEditorReauthenticate'
+import useNotifications from '@/composables/useNotifications'
 
 export default {
   name: 'UserProfileCardEditor',
   components: {
-    UserProfileCardEditorRandomAvatar,
-    AppSpinner
+    UserProfileCardEditorReauthenticate,
+    UserProfileCardEditorRandomAvatar
   },
   props: {
     user: {
@@ -65,12 +75,17 @@ export default {
       type: Object
     }
   },
+  setup () {
+    const { addNotification } = useNotifications()
+    return { addNotification }
+  },
   data () {
     return {
       uploadingImage: false,
       activeUser: { ...this.user },
       processing: false,
-      locationOptions: []
+      locationOptions: [],
+      needsReAuth: false
     }
   },
   methods: {
@@ -92,16 +107,38 @@ export default {
       if (randomAvatarGenerated) {
         const image = await fetch(this.activeUser.avatar)
         const blob = await image.blob()
-        this.activeUser.avatar = await this.uploadAvatar({ file: blob, filename: 'random' })
+        this.activeUser.avatar = await this.uploadAvatar({
+          file: blob,
+          filename: 'random'
+        })
       }
     },
-    async save () {
-      console.log('save')
-      this.processing = true
-      await this.handleRandomAvatarUpload()
-      this.$store.dispatch('users/updateUser', { ...this.activeUser, threads: this.activeUser.threadIds })
+    onReauthenticatedFailed () {
+      this.addNotification({ message: 'Error Updating User', type: 'error', timeout: 3000 })
+      this.$router.push({ name: 'Profile' })
+    },
+    async onReauthenticated () {
+      await this.$store.dispatch('auth/updateEmail', { email: this.activeUser.email })
+      this.saveUserData()
+    },
+    async saveUserData () {
+      await this.$store.dispatch('users/updateUser', {
+        ...this.activeUser,
+        threads: this.activeUser.threadIds
+      })
       this.processing = false
       this.$router.push({ name: 'Profile' })
+      this.addNotification({ message: 'User successfully updated', timeout: 3000 })
+    },
+    async save () {
+      this.processing = true
+      await this.handleRandomAvatarUpload()
+      const emailChanged = this.activeUser.email !== this.user.email
+      if (emailChanged) {
+        this.needsReAuth = true
+      } else {
+        this.saveUserData()
+      }
     },
     cancel () {
       this.$router.push({ name: 'Profile' })
